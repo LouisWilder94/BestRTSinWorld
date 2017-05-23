@@ -20,6 +20,6 @@ public class SelectableUnitComponent : MonoBehaviour
 
     public void moveTo(Vector3 targetPosition)
     {
-        agent.SetDestination(targetPosition);
+        agent.SetDestination(Vector3.Lerp(transform.position, targetPosition,.9f));
     }
 }
