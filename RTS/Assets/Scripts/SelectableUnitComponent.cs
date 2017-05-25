@@ -10,24 +10,24 @@ public class SelectableUnitComponent : MonoBehaviour
     public GameObject selectionCircle;
     public float moveSpeed = 1f;
 
-
+    //This only calls when the terrain is clicked on
     public void moveTo(Vector3 targetPosition)
     {
         StartCoroutine(Move(targetPosition));
     }
+
     public IEnumerator Move(Vector3 targetPosition)
     {
-        float startTime = Time.time;
-        float amount;
+        yield return null;
 
-        while ((amount = (Time.time - startTime)) < 1)
-        {
-            transform.LookAt(new Vector3(targetPosition.x,transform.position.y,targetPosition.z));
-            transform.Translate(transform.forward * moveSpeed * Time.deltaTime);
+        //targetPosition.y = transform.position.y;
 
-            yield return null;
-        }
+        //while (transform.position != targetPosition)
+        //{
+        //    transform.LookAt(targetPosition);
+        //    transform.Translate(transform.forward * moveSpeed * Time.deltaTime);
 
-        
+        //    yield return null;
+        //}     
     }
 }
