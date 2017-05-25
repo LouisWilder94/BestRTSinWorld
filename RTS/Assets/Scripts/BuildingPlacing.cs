@@ -5,48 +5,57 @@ using UnityEngine.Networking;
 
 public class BuildingPlacing : NetworkBehaviour
 {
-    static GameObject selectedBuilding;
-    static GameObject previewBuilding;
+    public Material wireframeMaterial;
 
-    public GameObject prefab;
+    GameObject selectedBuilding;
+    Material startingMaterial;
 
+    //method runs when UI button is clicked
     public void AttachBuildingToCursor(GameObject building)
     {
-        selectedBuilding = building;
+        selectedBuilding = Instantiate(building);
+        startingMaterial = selectedBuilding.GetComponent<Renderer>().material;
+        selectedBuilding.GetComponent<Renderer>().material = wireframeMaterial;
+        selectedBuilding.GetComponent<Collider>().enabled = false;
+        StartCoroutine(BuildingPreview());
     }
 
     Vector3 mouseSpot;
 
-    private void Awake()
+    IEnumerator BuildingPreview()
     {
-        previewBuilding = Instantiate(prefab);
-        previewBuilding.SetActive(false);
-        previewBuilding.GetComponent<Collider>().enabled = false;
-    }
-
-    void Update()
-    {
-        //checks for the local player before spawning the building otherwise it returns
-        if (!isLocalPlayer)
-            return;
-
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
+        while (selectedBuilding != null)
         {
-            previewBuilding.SetActive(true);
-            previewBuilding.transform.position = hit.point;
+            //checks for the local player before spawning the building otherwise it returns
+            //Will, this was breaking my testing, but probably because I didn't put the script on the player and put it on the UI instead
+            //if (!isLocalPlayer)
+            //    return;
 
-            
+            //variables for mouse position
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
 
-            if (Input.GetMouseButtonDown(0))
+            //checks if mouse is over terrain
+            if (Physics.Raycast(ray, out hit))
             {
-                if (selectedBuilding != null)
+                selectedBuilding.SetActive(true);
+
+                //make preview follow the mouse and fake the grid-like placement
+                selectedBuilding.transform.position = new Vector3((int)hit.point.x, (int)hit.point.y + selectedBuilding.GetComponent<Collider>().bounds.extents.y, (int)hit.point.z);
+
+                //placing the building
+                if (Input.GetMouseButtonDown(0))
+                {
+                    selectedBuilding.GetComponent<Renderer>().material = startingMaterial;
                     CmdSpawnBuilding(selectedBuilding, hit.point, Quaternion.identity);
+                    selectedBuilding = null;
+                }
             }
+            else
+                selectedBuilding.SetActive(false);
+
+            yield return null;
         }
-        else
-            previewBuilding.SetActive(false);
     }
 
 
@@ -54,7 +63,7 @@ public class BuildingPlacing : NetworkBehaviour
     [Command]
     void CmdSpawnBuilding(GameObject building, Vector3 hitLocation, Quaternion rotation)
     {
-        GameObject instance = Instantiate(prefab, hitLocation, rotation) as GameObject;           //It is currently instantiating prefab instead of selectedBuilding  <-------------
+        GameObject instance = Instantiate(building, hitLocation, rotation) as GameObject; //I switched this back to not a prefab. The "prefab" basically exists on the UI button.
 
         NetworkServer.Spawn(instance);
     }
