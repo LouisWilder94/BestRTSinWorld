@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class BuildingPlacing : NetworkBehaviour
+public class WillBuildThings : NetworkBehaviour
 {
     public Material wireframeMaterial;
 
@@ -15,20 +15,20 @@ public class BuildingPlacing : NetworkBehaviour
     //method runs when UI button is clicked
     public void AttachBuildingToCursor(GameObject building)
     {
-        Debug.Log("Selected " + building + ".");
+        Debug.Log("Button press.");
 
         selectedBuilding = Instantiate(building);
         startingMaterial = selectedBuilding.GetComponent<Renderer>().material;
         selectedBuilding.GetComponent<Renderer>().material = wireframeMaterial;
         selectedBuilding.GetComponent<Collider>().enabled = false;
-        StartCoroutine(BuildingPreview());
     }
 
     Vector3 mouseSpot;
 
-    IEnumerator BuildingPreview()
+    void Update()
     {
-        while (selectedBuilding != null)
+
+        if (selectedBuilding != null)
         {
             //checks for the local player before spawning the building otherwise it returns
             //Will, this was breaking my testing, but probably because I didn't put the script on the player and put it on the UI instead
@@ -51,29 +51,36 @@ public class BuildingPlacing : NetworkBehaviour
                 if (Input.GetMouseButtonDown(0))
                 {
                     selectedBuilding.GetComponent<Renderer>().material = startingMaterial;
-                    
-                    CmdSpawnBuilding(selectedBuilding, selectedBuilding.transform.position, Quaternion.identity);
+
+                    CmdSpawnBuilding(selectedBuilding, hit.point, Quaternion.identity);
 
                     selectedBuilding.SetActive(false);
                     selectedBuilding = null;
                 }
+
+                if (Physics.Raycast(ray, out hit))
+                {
+                    if (Input.GetKeyDown(KeyCode.Alpha6))
+                    {
+                        CmdSpawnBuilding(willsTestGO, hit.point, Quaternion.identity);
+                    }
+                }
             }
             else
                 selectedBuilding.SetActive(false);
-
-            yield return null;
         }
     }
 
 
     //This sends a command to the server to create the building
-    //[Command]
+    [Command]
     void CmdSpawnBuilding(GameObject building, Vector3 hitLocation, Quaternion rotation)
     {
-        GameObject instance = Instantiate(building, hitLocation, rotation) as GameObject; //I switched this back to not a prefab. The "prefab" basically exists on the UI button.
-        Debug.Log("Placed " + building + ".");
+        Debug.Log("test");
+        Debug.Log("current building: " + building);
 
-        //NetworkServer.Spawn(instance);
-        Instantiate(instance);
+        GameObject instance = Instantiate(building, hitLocation, rotation) as GameObject; //I switched this back to not a prefab. The "prefab" basically exists on the UI button.
+
+        NetworkServer.Spawn(instance);
     }
 }
