@@ -118,6 +118,9 @@ public class CameraController : MonoBehaviour {
             currentOrthSize = Mathf.Clamp(currentOrthSize, minHeight, maxHeight);
             Vector3 pos = new Vector3(transform.position.x, currentOrthSize, transform.position.z);
 
+           // float angle = Mathf.Lerp(minHeight, maxHeight, transform.position.y);
+           // transform.localRotation = Quaternion.Euler(angle, 0f, 0f);
+
             transform.position = pos;
         }
 
