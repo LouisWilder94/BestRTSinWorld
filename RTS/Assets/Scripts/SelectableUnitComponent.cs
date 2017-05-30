@@ -8,7 +8,6 @@ using UnityEngine.AI;
 public class SelectableUnitComponent : MonoBehaviour
 {
     public GameObject selectionCircle;
-    public float moveSpeed = 1f;
 
     public Vector3 target;
     NavMeshAgent agent;
