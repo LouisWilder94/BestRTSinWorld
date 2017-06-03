@@ -7,9 +7,9 @@ using UnityEngine.EventSystems;
 public class TerrainScript : MonoBehaviour,IPointerClickHandler {
     public void OnPointerClick(PointerEventData eventData)
     {
-        Debug.Log("Click");
         if (eventData.button == PointerEventData.InputButton.Right)
         {
+            Debug.Log("Right-Click");
             SelectionScript.instance.MoveOut(eventData.pointerPressRaycast.worldPosition);
         }
     }
