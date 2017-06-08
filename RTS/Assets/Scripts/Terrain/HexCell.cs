@@ -261,7 +261,31 @@ public class HexCell : MonoBehaviour {
 			hasOutgoingRiver && outgoingRiver == direction;
 	}
 
-	public void RemoveIncomingRiver () {
+    public Vector3[] GetHexPoints(Vector3 hitPoint)
+    {
+        float Radius = HexMetrics.outerRadius * 0.55f;
+        float innerRadius = HexMetrics.innerRadius * 0.55f;
+        float centerX = transform.position.x;//coordinates.X * (Radius * 1.75f); //* HexMetrics.innerRadius;
+        float centerY = transform.position.y;//hitPoint.y;
+        float centerZ = transform.position.z; //coordinates.Z * (Radius * 1.75f); //* HexMetrics.innerRadius;
+
+        Debug.Log(centerX + "Adjusted Center");
+        Debug.Log(hitPoint + "hitPoint");
+
+        Vector3 point1 = new Vector3(centerX, centerY, Radius + centerZ);
+        Vector3 point2 = new Vector3(innerRadius + centerX, centerY, centerZ + (0.5f * Radius));
+        Vector3 point3 = new Vector3(innerRadius + centerX, centerY, centerZ + (-0.5f * Radius));
+        Vector3 point4 = new Vector3(centerX, centerY, centerZ - Radius);
+        Vector3 point5 = new Vector3(centerX - innerRadius, centerY, centerZ + (-0.5f * Radius));
+        Vector3 point6 = new Vector3(centerX - innerRadius, centerY, centerZ + (0.5f * Radius));
+        Vector3 point7 = transform.position;
+
+        Vector3[] points = { point1, point2, point3, point4, point5, point6, point7 };
+        return points;
+    }
+
+
+    public void RemoveIncomingRiver () {
 		if (!hasIncomingRiver) {
 			return;
 		}

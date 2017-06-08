@@ -26,6 +26,8 @@ public class HexMapEditor : MonoBehaviour {
 
 	OptionalToggle riverMode, roadMode, walledMode;
 
+    public GameObject test;
+
 	bool isDrag;
 	HexDirection dragDirection;
 	HexCell previousCell;
@@ -127,10 +129,24 @@ public class HexMapEditor : MonoBehaviour {
 			}
 			EditCells(currentCell);
 			previousCell = currentCell;
-		}
+
+            //test
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                Vector3[] points = currentCell.GetHexPoints(hit.point);
+                     for (int i = 0; i < points.Length; i++)
+                     {
+                    GameObject clone = (GameObject)Instantiate(test, points[i], Quaternion.identity);
+                     }
+
+                }
+            //test
+        }
 		else {
 			previousCell = null;
 		}
+
+
 	}
 
 	void ValidateDrag (HexCell currentCell) {
