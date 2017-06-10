@@ -60,7 +60,7 @@ public class SelectionScript : MonoBehaviour {
                 Debug.Log(objects.gameObject.name);
             }
 
-            DynamicUI.instance.UpdateUI();
+            //DynamicUI.instance.UpdateUI();
             isSelecting = false;
         }
         if (isSelecting)
