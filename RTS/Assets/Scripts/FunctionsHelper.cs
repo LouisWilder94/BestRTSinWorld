@@ -15,7 +15,7 @@ public class FunctionsHelper : NetworkBehaviour {
 
     public static Vector3 GetCursorPosition(int playerNumber)
     {
-        Ray inputRay = GameManager.players[playerNumber].playerCamera.ScreenPointToRay(Input.mousePosition);
+      Ray inputRay = GameManager.instance.players[playerNumber].playerCamera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
         if (Physics.Raycast(inputRay, out hit))
         {

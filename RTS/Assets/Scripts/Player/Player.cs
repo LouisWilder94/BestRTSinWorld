@@ -5,10 +5,13 @@ using UnityEngine.Networking;
 
 public class Player : NetworkBehaviour {
     public Camera playerCamera;
-    public int Money;
+    public int Minerals;
+   //[HideInInspector]
+    public int playerNumber = 10000;
 
-    [HideInInspector]
-    public int playerNumber;
+    public float randomID;
+
+    
 
     public Vector3 mousePosition
     {
@@ -41,9 +44,10 @@ public class Player : NetworkBehaviour {
     }
 
 
-
+    [ServerCallback]
     private void Awake()
     {
-        GameManager.instance.AddPlayerToList(this);
+        GameManager.instance.RpcAddPlayerToList(this);
+        randomID = Random.Range(0, 100f);
     }
 }
