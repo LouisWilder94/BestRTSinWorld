@@ -113,5 +113,7 @@ public class SelectionScript : MonoBehaviour {
     {
         Debug.Log("MoveOut");
         movementDelegate(targetPosition);
+        
+        
     }
 }
