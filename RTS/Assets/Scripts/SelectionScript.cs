@@ -15,7 +15,7 @@ public class SelectionScript : MonoBehaviour {
         }
     }
     public GameObject selectionCirclePrefab;
-    List<SelectableUnitComponent> selectedObjects;
+    public List<SelectableUnitComponent> selectedObjects;
 
     //for selecting units
     bool isSelecting = false;
@@ -60,7 +60,7 @@ public class SelectionScript : MonoBehaviour {
                 Debug.Log(objects.gameObject.name);
             }
 
-
+            DynamicUI.instance.UpdateUI();
             isSelecting = false;
         }
         if (isSelecting)
