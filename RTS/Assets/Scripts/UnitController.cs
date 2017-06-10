@@ -61,6 +61,8 @@ public class UnitController : NetworkBehaviour {
     [Command]
     void CmdMeleeUnitSpawn( Vector3 hitLocation, Quaternion rotation)
     {
+        Debug.Log("Create Melee.");
+
         GameObject instance = Instantiate(meleePrefab, hitLocation, rotation) as GameObject;
         instance.tag = myTag;
 
@@ -70,6 +72,8 @@ public class UnitController : NetworkBehaviour {
     [Command]
     void CmdRangedUnitSpawn(Vector3 hitLocation, Quaternion rotation)
     {
+        Debug.Log("Create Ranged.");
+
         GameObject instance = Instantiate(rangedPrefab, hitLocation, rotation) as GameObject;
         instance.tag = myTag;
 

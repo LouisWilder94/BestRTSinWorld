@@ -8,7 +8,6 @@ using UnityEngine.AI;
 public class SelectableUnitComponent : MonoBehaviour
 {
     public GameObject selectionCircle;
-    public float moveSpeed = 1f;
 
     public Vector3 target;
     NavMeshAgent agent;
@@ -20,6 +19,10 @@ public class SelectableUnitComponent : MonoBehaviour
 
     public void moveTo(Vector3 targetPosition)
     {
-        agent.SetDestination(Vector3.Lerp(transform.position, targetPosition,.9f));
+        if (agent != null)
+        {
+            agent.SetDestination(Vector3.Lerp(transform.position, targetPosition, .99f));
+        }
+        
     }
 }

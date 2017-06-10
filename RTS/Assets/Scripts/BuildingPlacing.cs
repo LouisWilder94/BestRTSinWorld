@@ -10,9 +10,13 @@ public class BuildingPlacing : NetworkBehaviour
     GameObject selectedBuilding;
     Material startingMaterial;
 
+    public GameObject willsTestGO;
+
     //method runs when UI button is clicked
     public void AttachBuildingToCursor(GameObject building)
     {
+        Debug.Log("Selected " + building + ".");
+
         selectedBuilding = Instantiate(building);
         startingMaterial = selectedBuilding.GetComponent<Renderer>().material;
         selectedBuilding.GetComponent<Renderer>().material = wireframeMaterial;
@@ -47,7 +51,10 @@ public class BuildingPlacing : NetworkBehaviour
                 if (Input.GetMouseButtonDown(0))
                 {
                     selectedBuilding.GetComponent<Renderer>().material = startingMaterial;
-                    CmdSpawnBuilding(selectedBuilding, hit.point, Quaternion.identity);
+                    
+                    CmdSpawnBuilding(selectedBuilding, selectedBuilding.transform.position, Quaternion.identity);
+
+                    selectedBuilding.SetActive(false);
                     selectedBuilding = null;
                 }
             }
@@ -60,11 +67,13 @@ public class BuildingPlacing : NetworkBehaviour
 
 
     //This sends a command to the server to create the building
-    [Command]
+    //[Command]
     void CmdSpawnBuilding(GameObject building, Vector3 hitLocation, Quaternion rotation)
     {
         GameObject instance = Instantiate(building, hitLocation, rotation) as GameObject; //I switched this back to not a prefab. The "prefab" basically exists on the UI button.
+        Debug.Log("Placed " + building + ".");
 
-        NetworkServer.Spawn(instance);
+        //NetworkServer.Spawn(instance);
+        Instantiate(instance);
     }
 }
