@@ -76,8 +76,10 @@ public class SelectionScript : MonoBehaviour {
 
             //this calls the Update UI method in the dynamicUI
             if (onSelected != null)
-                onSelected(selectedObjects);            isSelecting = false;
-        }
+                onSelected(selectedObjects);
+
+
+            isSelecting = false;        }
         if (isSelecting)
         {
             foreach( var selectableObject in FindObjectsOfType<SelectableUnitComponent>())
