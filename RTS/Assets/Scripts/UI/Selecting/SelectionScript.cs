@@ -76,9 +76,7 @@ public class SelectionScript : MonoBehaviour {
 
             //this calls the Update UI method in the dynamicUI
             if (onSelected != null)
-                onSelected(selectedObjects);
-
-            isSelecting = false;
+                onSelected(selectedObjects);            isSelecting = false;
         }
         if (isSelecting)
         {
@@ -130,5 +128,7 @@ public class SelectionScript : MonoBehaviour {
     {
         Debug.Log("MoveOut");
         movementDelegate(targetPosition);
+        
+        
     }
 }

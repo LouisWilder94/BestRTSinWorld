@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
-
+using UnityEngine.AI;
 public class HexGrid : MonoBehaviour {
 
 	public int cellCountX = 20, cellCountZ = 15;
@@ -20,6 +20,8 @@ public class HexGrid : MonoBehaviour {
 	HexCell[] cells;
 
 	int chunkCountX, chunkCountZ;
+
+    public 
 
 	void Awake () {
 		HexMetrics.noiseSource = noiseSource;
