@@ -23,6 +23,5 @@ public class SelectableUnitComponent : MonoBehaviour
         {
             agent.SetDestination(Vector3.Lerp(transform.position, targetPosition, .99f));
         }
-        
     }
 }

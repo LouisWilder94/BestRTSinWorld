@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class SelectionScript : MonoBehaviour {
-
+    //singleton stuff
     static SelectionScript _instance;
     public static SelectionScript instance
     {
@@ -14,6 +14,8 @@ public class SelectionScript : MonoBehaviour {
             return _instance;
         }
     }
+    //singleton stuff
+
     public GameObject selectionCirclePrefab;
     public List<SelectableUnitComponent> selectedObjects;
 
@@ -24,6 +26,18 @@ public class SelectionScript : MonoBehaviour {
     //Movement 
     delegate void MovementDelegate(Vector3 position);
     MovementDelegate movementDelegate;
+
+    //Updating UI
+    delegate void OnSelected(List<SelectableUnitComponent> selectedObjects);
+    OnSelected onSelected;
+
+    private void Start()
+    {
+        //this is for registering the dynamic UI script with this script
+        DynamicUI dynamicUIscript = FindObjectOfType<DynamicUI>();
+        if (dynamicUIscript != null)
+            onSelected += dynamicUIscript.UpdateUI;
+    }
 
     void Update()
     {
@@ -60,7 +74,10 @@ public class SelectionScript : MonoBehaviour {
                 Debug.Log(objects.gameObject.name);
             }
 
-            DynamicUI.instance.UpdateUI();
+            //this calls the Update UI method in the dynamicUI
+            if (onSelected != null)
+                onSelected(selectedObjects);
+
             isSelecting = false;
         }
         if (isSelecting)
