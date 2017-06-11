@@ -2,27 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-
-
+using System.Linq;
+using System;
 
 public class GameManager : NetworkBehaviour {
-
-    //[SyncVar]
-    //public static Player[] players;
-    
     public List<Player> players;
-
-   
     public static GameManager instance;
-
-    [SyncVar]
-    public int numPlayers = 0;
-
-    
+    public static int numPlayers = 0;
     public string[] playerTags;
-    //player1 player2 player3 player4
 
-    //public GameObject[] maxPlayers;
 
 
     private void Start()
@@ -35,57 +23,29 @@ public class GameManager : NetworkBehaviour {
         {
             instance = this;
         }
-        //players = 2;
-
-     //   for (int i = 0; i < maxPlayers; i++)
-     //   {
-     //       if (players[i] != null)
-     //           Debug.Log("player" + i + "   " + players[i]);
-     //      else
-     //          return;
-     //  }
     }
 
-    //[Server]
+    [Server]
+    public void RpcsortPlayers(List<Player> players)
+    {
+        players.Sort(new PlayerComparer());
+    }
 
-        //[ClientRpc]
+    public static void IncreasePlayerNumber()
+    {
+        numPlayers++;
+    }
+
 
         [ServerCallback]
     public void RpcAddPlayerToList(Player playerToAdd)
     {
-        //if (!isServer)
-       // {
-        //    return;
-       // }
-
-        numPlayers++;
         players.Add(playerToAdd);
-        for (int i = 0; i < players.Count; i++)
-        {
-            if (players[i].randomID == playerToAdd.randomID)
-            {
-                playerToAdd.playerNumber = i + 1;
-                Debug.Log("Added player" + (i + 1));
-            }
-        }
-        //players[numPlayers] = playerToAdd;
-        //Debug.Log("Added player" + numPlayers);
-        //playerToAdd.playerNumber = numPlayers;
-
-      //  for (int i = 0; i < 10; i++)
-      //  {
-      //      if (players[i] != null)
-      //      {
-       //         Debug.Log("Player in slot");
-        //    }
-        //    else
-        //    {
-         //       players.Add(playerToAdd); // = playerToAdd;
-         //       playerToAdd.playerNumber = i;
-          //      Debug.Log("added player" + i);
-          //      return;
-           // }
-       // }
+        playerToAdd.playerNumber = numPlayers;
+        Debug.Log("Added player" + numPlayers);
+        FunctionsHelper.AddPlayerTagToObject(playerToAdd, playerToAdd.gameObject);
+        Debug.Log("Added player tag " + playerToAdd.gameObject.tag);
+        Debug.Log("Returning Player" + players[numPlayers].playerNumber);
     }
 
     public Player getPlayer(int playerNumber)
@@ -93,4 +53,23 @@ public class GameManager : NetworkBehaviour {
         return players[playerNumber];
     }
 
+}
+
+public class PlayerComparer : IComparer<Player>
+{
+    public int Compare(Player x, Player y)
+    {
+        if (x.playerNumber > y.playerNumber)
+        {
+            return -1;
+        }
+        else if (y.playerNumber > x.playerNumber)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
 }

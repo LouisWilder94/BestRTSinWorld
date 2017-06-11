@@ -2,14 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using System;
 
 public class Player : NetworkBehaviour {
     public Camera playerCamera;
     public int Minerals;
-   //[HideInInspector]
-    public int playerNumber = 10000;
 
-    public float randomID;
+
+    [HideInInspector]
+    public int playerNumber = 10000;
+    [HideInInspector]
+    public string randomID;
+    [HideInInspector]
+    public long timeOnStartup;
 
     
 
@@ -47,7 +52,10 @@ public class Player : NetworkBehaviour {
     [ServerCallback]
     private void Awake()
     {
+        Debug.Log("Adding Player" + GameManager.numPlayers);
+        timeOnStartup = DateTime.Now.Ticks;
+        randomID = Guid.NewGuid().ToString(); //Random.Range(0, 100f);
         GameManager.instance.RpcAddPlayerToList(this);
-        randomID = Random.Range(0, 100f);
+        GameManager.IncreasePlayerNumber();
     }
 }
