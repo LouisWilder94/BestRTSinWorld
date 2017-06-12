@@ -78,7 +78,6 @@ public class SelectionScript : MonoBehaviour {
             if (onSelected != null)
                 onSelected(selectedObjects);
 
-
             isSelecting = false;        }
         if (isSelecting)
         {
