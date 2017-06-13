@@ -9,7 +9,7 @@ public enum BuildingType
 
 public enum UnitType
 {
-    Solider
+    Melee
 }
 
 public enum MonsterType
@@ -36,21 +36,64 @@ public class Factory : MonoBehaviour {
     }
     //singleton stuff
 
+    public Material wireframeMaterial;
     public GameObject barracksPrefab;
-    public GameObject CreateBuilding(BuildingType type)
+
+    GameObject buildingPreview;
+
+    delegate void AttachBuildingToCursor(GameObject buildingPreview, BuildingType type);
+    AttachBuildingToCursor attachBuildToCursor;
+
+    private void Start()
     {
+        BuildingPlace buildingPlaceScript = FindObjectOfType<BuildingPlace>();
+        if (buildingPlaceScript != null)
+            attachBuildToCursor += buildingPlaceScript.AttachPreviewToCursor;
+    }
+
+    public void PreviewBuilding(BuildingType type)
+    {
+        GameObject previewPrefab;
+
         switch (type)
         {
             case BuildingType.Barracks:
-                return barracksPrefab;
+                previewPrefab = barracksPrefab;
+                break;
             default:
-                return null;
+                previewPrefab = null;
+                break;
         }
+
+        buildingPreview = Instantiate(previewPrefab);
+        buildingPreview.GetComponent<Renderer>().material = wireframeMaterial;
+        buildingPreview.GetComponent<Collider>().enabled = false;
+        buildingPreview.GetComponent<Building>().enabled = false;
+
+        if (attachBuildToCursor != null)
+            attachBuildToCursor(buildingPreview, type);
     }
 
-    public GameObject CreateUnit(string unitName)
+    public void CreateBuilding(Vector3 position, BuildingType type)
     {
-        return null;
+        GameObject buildingPrefab;
+
+        switch (type)
+        {
+            case BuildingType.Barracks:
+                buildingPrefab = barracksPrefab;
+                break;
+            default:
+                buildingPrefab = null;
+                break;
+        }
+
+        GameObject building = Instantiate(buildingPrefab, position, Quaternion.identity);
+    }
+
+    public void CreateUnit(string unitName)
+    {
+        
     }
 
     public GameObject CreateMonster(string monsterName)
