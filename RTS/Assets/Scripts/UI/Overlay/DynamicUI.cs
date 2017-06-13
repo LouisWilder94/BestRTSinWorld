@@ -27,8 +27,18 @@ public class DynamicUI : MonoBehaviour {
 
     List<Button> buttons = new List<Button>();
 
-    // Reference to the BuildingPlace script.
-//    delegate void StartBuildingPreview()
+    // References to the Factory script.
+    delegate void FactoryPreview(BuildingType type);
+    FactoryPreview callPreviewBuilding;
+    delegate void FactoryUnit(UnitType type);
+    FactoryUnit callCreateUnit;
+
+    private void Start()
+    {
+        Factory factoryScript = FindObjectOfType<Factory>();
+        if (factoryScript != null)
+            callPreviewBuilding += factoryScript.PreviewBuilding;
+    }
 
     // UpdateUI is only called through the SelectionScript when a unit is selected or deselected.
     // Currently this system only works with one unit at a time. My assumption is that we'll change 
@@ -43,17 +53,28 @@ public class DynamicUI : MonoBehaviour {
             Debug.Log("There were units selected.");
             if (selectedObjects[0].GetComponent<Unit>() != null)
             {
+                // if unit is builder
                 if (selectedObjects[0].GetComponent<Builder>() != null)
                 {
                     ButtonCache barracksButton = Instantiate(buttonPrefab, topPanel.transform).GetComponent<ButtonCache>();
                     barracksButton.textComponent.text = "Barracks";
-                    barracksButton.buttonComponent.onClick.AddListener(TestMethod);
+
+                    if (callPreviewBuilding != null)
+                        barracksButton.buttonComponent.onClick.AddListener(delegate { callPreviewBuilding(BuildingType.Barracks); } );
                 }
             }
 
             if (selectedObjects[0].GetComponent<Building>() != null)
             {
+                // if building is barracks
+                if (selectedObjects[0].GetComponent<Barracks>() != null)
+                {
+                    ButtonCache meleeButton = Instantiate(buttonPrefab, topPanel.transform).GetComponent<ButtonCache>();
+                    meleeButton.textComponent.text = "Melee";
 
+                    if (callCreateUnit != null)
+                        meleeButton.buttonComponent.onClick.AddListener(delegate { callCreateUnit(UnitType.Melee); });
+                }
             }
 
             if (selectedObjects[0].GetComponent<Monster>() != null)
@@ -65,8 +86,6 @@ public class DynamicUI : MonoBehaviour {
             {
 
             }
-
-
         }
         else
         {

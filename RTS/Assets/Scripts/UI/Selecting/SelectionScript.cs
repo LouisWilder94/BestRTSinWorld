@@ -78,7 +78,8 @@ public class SelectionScript : MonoBehaviour {
             if (onSelected != null)
                 onSelected(selectedObjects);
 
-            isSelecting = false;        }
+            isSelecting = false;
+        }
         if (isSelecting)
         {
             foreach( var selectableObject in FindObjectsOfType<SelectableUnitComponent>())

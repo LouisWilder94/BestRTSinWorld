@@ -5,18 +5,26 @@ using UnityEngine.Networking;
 
 public class BuildingPlace : MonoBehaviour
 {
-    public Material wireframeMaterial;
-
     GameObject selectedBuilding;
     Material startingMaterial;
+    BuildingType type;
+
+    // Reference to the Factory script.
+    delegate void FactoryHandler(Vector3 position, BuildingType type);
+    FactoryHandler callCreateBuilding;
+
+    private void Start()
+    {
+        Factory factoryScript = FindObjectOfType<Factory>();
+        if (factoryScript != null)
+            callCreateBuilding += factoryScript.CreateBuilding;
+    }
 
     //method runs when UI button is clicked
-    public void AttachBuildingToCursor(GameObject building)
+    public void AttachPreviewToCursor(GameObject building, BuildingType type)
     {
-        selectedBuilding = Instantiate(building);
-        startingMaterial = selectedBuilding.GetComponent<Renderer>().material;
-        selectedBuilding.GetComponent<Renderer>().material = wireframeMaterial;
-        selectedBuilding.GetComponent<Collider>().enabled = false;
+        this.type = type;
+        selectedBuilding = building;
         StartCoroutine(BuildingPreview());
     }
 
@@ -36,14 +44,15 @@ public class BuildingPlace : MonoBehaviour
                 selectedBuilding.SetActive(true);
 
                 //make preview follow the mouse and fake the grid-like placement
-                selectedBuilding.transform.position = new Vector3((int)hit.point.x, ((int)hit.point.y + selectedBuilding.GetComponent<Collider>().bounds.extents.y), (int)hit.point.z);
+                selectedBuilding.transform.position = new Vector3((int)hit.point.x, ((int)hit.point.y + selectedBuilding.GetComponent<MeshRenderer>().bounds.extents.y), (int)hit.point.z);
 
                 //placing the building
                 if (Input.GetMouseButtonDown(0))
                 {
-                    selectedBuilding.GetComponent<Renderer>().material = startingMaterial;
+                    if (callCreateBuilding != null)
+                        callCreateBuilding(selectedBuilding.transform.position, type);
 
-                    selectedBuilding = null;
+                    Destroy(selectedBuilding);
                 }
             }
             else
