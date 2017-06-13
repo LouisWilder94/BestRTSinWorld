@@ -7,7 +7,9 @@ using System;
 public class Player : NetworkBehaviour {
     public Camera playerCamera;
     public int Minerals;
+    public Color playerColor;
 
+    public UnitController unitController;
 
     [HideInInspector]
     public int playerNumber = 10000;
@@ -16,7 +18,22 @@ public class Player : NetworkBehaviour {
     [HideInInspector]
     public long timeOnStartup;
 
-    
+    private void Start()
+    {
+        playerCamera = GetComponentInChildren<Camera>();
+        playerCamera.tag = "MainCamera";
+        unitController = GetComponent<UnitController>();
+        playerColor = GameManager.instance.playerColors[playerNumber];
+        SetMainCamera();
+    }
+
+    [ClientCallback]
+    public void SetMainCamera()
+    {
+        playerCamera.tag = "MainCamera";
+    }
+
+
 
     public Vector3 mousePosition
     {

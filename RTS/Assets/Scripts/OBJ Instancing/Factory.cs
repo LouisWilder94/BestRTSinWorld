@@ -2,6 +2,26 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum BuildingType
+{
+    Barracks
+}
+
+public enum UnitType
+{
+    Solider
+}
+
+public enum MonsterType
+{
+    Monster
+}
+
+public enum UpgradeType
+{
+    Powerup
+}
+
 public class Factory : MonoBehaviour {
     //singleton stuff
     private static Factory _instance;
@@ -17,11 +37,11 @@ public class Factory : MonoBehaviour {
     //singleton stuff
 
     public GameObject barracksPrefab;
-    public GameObject CreateBuilding(string buildingName)
+    public GameObject CreateBuilding(BuildingType type)
     {
-        switch (buildingName)
+        switch (type)
         {
-            case "Barracks":
+            case BuildingType.Barracks:
                 return barracksPrefab;
             default:
                 return null;

@@ -5,11 +5,14 @@ using UnityEngine.Networking;
 using System.Linq;
 using System;
 
+
 public class GameManager : NetworkBehaviour {
     public List<Player> players;
     public static GameManager instance;
     public static int numPlayers = 0;
     public string[] playerTags;
+
+    public Color[] playerColors;
 
 
 
@@ -23,6 +26,11 @@ public class GameManager : NetworkBehaviour {
         {
             instance = this;
         }
+    }
+
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
     }
 
     [Server]

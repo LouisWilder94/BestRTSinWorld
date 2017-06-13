@@ -1,14 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class FollowCursorPoint : MonoBehaviour {
+public class FollowCursorPoint : NetworkBehaviour {
 
     private Rigidbody ourRigidbody;
     public float speed = 5;
     public float randomMovement = 5;
     public float randomTimer = 5;
     public float drag = 1f;
+    public Camera playercam;
 
 
 	// Use this for initialization
@@ -18,7 +20,6 @@ public class FollowCursorPoint : MonoBehaviour {
             Debug.Log("Follow Cursor Script Has no Rigidbody attatched to it's object");
 
         ourRigidbody.drag = drag;
-
         //StartCoroutine(randomMovementApply());
 	}
 
