@@ -33,3 +33,4 @@ sysinfo.txt
 *.apk
 *.unitypackage
 /RTS/Library
+RTS/Assets/Scripts/UI/Selecting/SelectionScript.cs

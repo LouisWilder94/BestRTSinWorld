@@ -2,16 +2,38 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using System;
 
 public class Player : NetworkBehaviour {
     public Camera playerCamera;
     public int Minerals;
-   //[HideInInspector]
+    public Color playerColor;
+
+    public UnitController unitController;
+
+    [HideInInspector]
     public int playerNumber = 10000;
+    [HideInInspector]
+    public string randomID;
+    [HideInInspector]
+    public long timeOnStartup;
 
-    public float randomID;
+    private void Start()
+    {
+        playerCamera = GetComponentInChildren<Camera>();
+        playerCamera.tag = "MainCamera";
+        unitController = GetComponent<UnitController>();
+        playerColor = GameManager.instance.playerColors[playerNumber];
+        SetMainCamera();
+    }
 
-    
+    [ClientCallback]
+    public void SetMainCamera()
+    {
+        playerCamera.tag = "MainCamera";
+    }
+
+
 
     public Vector3 mousePosition
     {
@@ -47,7 +69,10 @@ public class Player : NetworkBehaviour {
     [ServerCallback]
     private void Awake()
     {
+        Debug.Log("Adding Player" + GameManager.numPlayers);
+        timeOnStartup = DateTime.Now.Ticks;
+        randomID = Guid.NewGuid().ToString(); //Random.Range(0, 100f);
         GameManager.instance.RpcAddPlayerToList(this);
-        randomID = Random.Range(0, 100f);
+        GameManager.IncreasePlayerNumber();
     }
 }

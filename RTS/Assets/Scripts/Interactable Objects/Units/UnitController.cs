@@ -7,6 +7,7 @@ public class UnitController : NetworkBehaviour {
 
     public GameObject meleePrefab;
     public GameObject rangedPrefab;
+    public Player playerComponent;
 
     string myTag;
 
@@ -34,6 +35,8 @@ public class UnitController : NetworkBehaviour {
         {
             myUnits[i] = meleePrefab;
         }
+
+        playerComponent = GetComponent<Player>();
 	}
 	
 	void Update ()
@@ -41,7 +44,7 @@ public class UnitController : NetworkBehaviour {
         if (!isLocalPlayer)
             return;
 
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Ray ray = playerComponent.playerCamera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
         if (Physics.Raycast(ray, out hit))
@@ -63,8 +66,9 @@ public class UnitController : NetworkBehaviour {
     {
         Debug.Log("Create Melee.");
 
-        GameObject instance = Instantiate(meleePrefab, hitLocation, rotation) as GameObject;
-        instance.tag = myTag;
+        GameObject instance = (GameObject)Instantiate(meleePrefab, hitLocation, rotation);
+        instance.tag = GameManager.instance.playerTags[playerComponent.playerNumber];
+        instance.GetComponent<Unit>().playerOwnership = playerComponent.playerNumber;
 
         NetworkServer.Spawn(instance);
     }
