@@ -4,20 +4,26 @@ using UnityEngine;
 
 public class UnitColor : MonoBehaviour {
 
+    [Header("By default gets a mat in a renderer")]
+    public Renderer[] renderers;
+    public int[] matToChange;
+
+  //  public Material[] mats;
+ 
+    //public bool changeRenderers = true;
+
+    public Color playerColor;
+    public int playerNumber;
+
 	// Use this for initialization
 	void Start () {
-		if(gameObject.tag == "Player1")
-        {
-            gameObject.GetComponent<Renderer>().material.color = Color.blue;
-        }
-        else
-        {
-            gameObject.GetComponent<Renderer>().material.color = Color.red;
-        }
+        playerColor = GameManager.instance.playerColors[playerNumber];
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                renderers[i].materials[matToChange[i]].color = playerColor;
+            }
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
+
 }

@@ -75,4 +75,24 @@ public class Player : NetworkBehaviour {
         GameManager.instance.RpcAddPlayerToList(this);
         GameManager.IncreasePlayerNumber();
     }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.U))
+        {
+            GameObject clone = (GameObject)Instantiate(unitController.meleePrefab, mousePosition, Quaternion.identity);
+            clone.GetComponent<Unit>().playerOwnership = 1;
+            clone.tag = GameManager.instance.playerTags[1];
+            clone.GetComponent<UnitColor>().playerNumber = 1;
+            NetworkServer.Spawn(clone);
+        }
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            GameObject clone = (GameObject)Instantiate(unitController.meleePrefab, mousePosition, Quaternion.identity);
+            clone.GetComponent<Unit>().playerOwnership = 2;
+            clone.tag = GameManager.instance.playerTags[2];
+            clone.GetComponent<UnitColor>().playerNumber = 2;
+            NetworkServer.Spawn(clone);
+        }
+    }
 }

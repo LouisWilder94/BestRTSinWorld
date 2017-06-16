@@ -7,24 +7,54 @@ using UnityEngine.Networking;
 //[RequireComponent(typeof(Animator))]
 public class UnitAnimator : NetworkBehaviour {
 
-   // [HideInInspector]
+    // [HideInInspector]
+    public Unit unitScript;
     public Animator animator;
     public NavMeshAgent navAgent;
 
     [Header("Attack 1")]
     public string[] attack1Anims;
+    public float[] attack1AnimHitTimes;
 
-    public void randomAttack1()
+    public void randomAttack1(UnitHealth target)
     {
-        animator.SetTrigger(attack1Anims[Random.Range(0, attack1Anims.Length)]);
+        if (unitScript.blocking == true)
+        {
+            ShieldBash(target);
+            return;
+        }
+
+        int RandomNum = (int)Random.Range(0, attack1Anims.Length);
+        animator.SetTrigger(attack1Anims[RandomNum]);
+        target.TakeDamageWDelayed(unitScript.basicAttackDamage, attack1AnimHitTimes[RandomNum], transform.position, (unitScript.basicAttackDamage / 3));
     }
 
     [Header("Attack 2")]
     public string[] attack2Anims;
+    public float[] attack2AnimHitTimes;
+    public float[] attack2SecondaryHitTimes;
 
-    public void randomAttack2()
+    public float blockAnimHitTime;
+
+    public void randomAttack2(UnitHealth target)
     {
-        animator.SetTrigger(attack2Anims[Random.Range(0, attack2Anims.Length)]);
+        if (unitScript.blocking == true)
+        {
+            ShieldBash(target);
+            return;
+        }
+
+        int RandomNum = (int)Random.Range(0, attack2Anims.Length);
+        animator.SetTrigger(attack2Anims[RandomNum]);
+        target.TakeDamageWDelayed(unitScript.basicAttackDamage, attack2AnimHitTimes[RandomNum], transform.position, (unitScript.basicAttackDamage / 2.5f));
+        target.TakeDamageWDelayed(unitScript.basicAttackDamage, attack2SecondaryHitTimes[RandomNum], transform.position, (unitScript.heavyAttackDamage / 2.5f));
+    }
+
+    public void ShieldBash(UnitHealth target)
+    {
+        int RandomNum = (int)Random.Range(0, attack1Anims.Length);
+        animator.SetTrigger(attack1Anims[RandomNum]);
+        target.TakeDamageWDelayed(unitScript.basicAttackDamage, blockAnimHitTime, transform.position, (unitScript.basicAttackDamage / 3));
     }
 
     //[Header("Animation States")]
@@ -75,6 +105,7 @@ public class UnitAnimator : NetworkBehaviour {
 
     private void Start()
     {
+        unitScript = GetComponent<Unit>();
         StartCoroutine(checkMoving());
     }
 

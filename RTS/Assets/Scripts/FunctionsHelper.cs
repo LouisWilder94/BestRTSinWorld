@@ -13,6 +13,19 @@ public class FunctionsHelper : NetworkBehaviour {
                 .FirstOrDefault();
     }
 
+    public static UnitHealth GetNearestUnit(Vector3 searchingPosition, UnitHealth searchingUnit)
+    {
+        UnitHealth[] units = GameObject.FindObjectsOfType<UnitHealth>();
+
+        // UnitHealth units = GameObject.FindObjectsOfType<UnitHealth>()
+
+        units.OrderBy(o => (o.transform.position - searchingPosition).sqrMagnitude)
+            .FirstOrDefault();
+
+        return units[1];
+
+    }
+
     public static Vector3 GetCursorPosition(int playerNumber)
     {
       Ray inputRay = GameManager.instance.players[playerNumber].playerCamera.ScreenPointToRay(Input.mousePosition);

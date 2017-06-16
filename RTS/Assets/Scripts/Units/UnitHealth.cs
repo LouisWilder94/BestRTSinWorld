@@ -24,17 +24,23 @@ public class UnitHealth : NetworkBehaviour {
     [SyncVar]
     public bool blocking = false;
     public bool Invunerable = false;
+    public bool incomingAttak = false;
 
     [Space]
 
     [Header("Startup")]
     [HideInInspector]
     public UnitAnimator animator;
+    public Unit unitScript;
 
     public bool InstantiateSliderOnStartup = true;
     private Slider slider;
     public GameObject SliderPrefab;
     public Transform SliderPosition;
+
+    [Header("Blood Effects")]
+    public GameObject bloodSpurtPrefab;
+    public GameObject sparksPrefab;
 
     //[SyncVar(hook = "OnChangeHealth")]
 
@@ -43,6 +49,8 @@ public class UnitHealth : NetworkBehaviour {
         animator = GetComponent<UnitAnimator>();
         if (animator == null)
             Debug.LogError("No unit animator attatched to health script");
+
+        unitScript = GetComponent<Unit>();
 
         StartCoroutine(healthRegen());
 
@@ -56,12 +64,11 @@ public class UnitHealth : NetworkBehaviour {
         }
 	}
 	
-	void Update () {
-
-
-        //TODO:optimize
-        //SliderPosition.LookAt(Camera.main.transform);
-	}
+    public void CreateAndDestroyEffect(GameObject FX)
+    {
+        GameObject instance = (GameObject)Instantiate(FX, transform.position, Quaternion.identity);
+        Destroy(instance, 1f);
+    }
 
     public void TakeDamage(float damage)
     {
@@ -74,15 +81,17 @@ public class UnitHealth : NetworkBehaviour {
             return;
         }
 
-        if (!blocking)
+        if (blocking == false)
         {
             currentHealth -= damage;
             slider.value -= damage;
+            CreateAndDestroyEffect(bloodSpurtPrefab);
         }
         else
         {
-            currentHealth -= damage * blockDmgRatio;
-            slider.value -= damage * blockDmgRatio;
+            CreateAndDestroyEffect(sparksPrefab);
+            currentHealth -= (damage * blockDmgRatio);
+            slider.value -= (damage * blockDmgRatio);
         }
 
         if (currentHealth <= 0)
@@ -91,6 +100,45 @@ public class UnitHealth : NetworkBehaviour {
         }
 
         //healthBar.sizeDelta = new Vector2(currentHealth, healthBar.sizeDelta.y);
+    }
+
+    public void TakeDamageWDelayed(float damage, float hitTime, Vector3 knockbackSource, float knockbackPower)
+    {
+        StartCoroutine(TakeDamageWithDelayIEnumberator(damage, hitTime, knockbackSource, knockbackPower));
+    }
+
+    public IEnumerator TakeDamageWithDelayIEnumberator(float damage, float hitTime, Vector3 knockbackSource, float knockbackPower)
+    {
+        yield return new WaitForSeconds(hitTime);
+
+        if (!isServer)
+        {
+            yield break;
+        }
+        if (Invunerable == true)
+        {
+            yield break;
+        }
+
+        if (blocking == false)
+        {
+            currentHealth -= damage;
+            slider.value -= damage;
+            CreateAndDestroyEffect(bloodSpurtPrefab);
+        }
+        else
+        {
+            CreateAndDestroyEffect(sparksPrefab);
+            currentHealth -= (damage * blockDmgRatio);
+            slider.value -= (damage * blockDmgRatio);
+        }
+
+        unitScript.Knockback(knockbackSource, knockbackPower);
+
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
     }
 
     public void gainHealth(float amount)
@@ -113,8 +161,13 @@ public class UnitHealth : NetworkBehaviour {
         Debug.Log("Dead!");
         animator.SetBoolTrue = "Die";
         animator.playAnimation("Die", 0);
-        gameObject.tag = null;
         Invunerable = true;
+        CreateAndDestroyEffect(bloodSpurtPrefab);
+        CreateAndDestroyEffect(bloodSpurtPrefab);
+        CreateAndDestroyEffect(bloodSpurtPrefab);
+        CreateAndDestroyEffect(bloodSpurtPrefab);
+        CreateAndDestroyEffect(bloodSpurtPrefab);
+        CreateAndDestroyEffect(bloodSpurtPrefab);
         StartCoroutine(WaitAndDie());
     }
 
