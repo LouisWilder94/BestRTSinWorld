@@ -104,7 +104,15 @@ public class UnitHealth : NetworkBehaviour {
 
     public void TakeDamageWDelayed(float damage, float hitTime, Vector3 knockbackSource, float knockbackPower)
     {
-        StartCoroutine(TakeDamageWithDelayIEnumberator(damage, hitTime, knockbackSource, knockbackPower));
+        try
+        {
+            StartCoroutine(TakeDamageWithDelayIEnumberator(damage, hitTime, knockbackSource, knockbackPower));
+        }
+        catch
+        {
+            return;
+        }
+
     }
 
     public IEnumerator TakeDamageWithDelayIEnumberator(float damage, float hitTime, Vector3 knockbackSource, float knockbackPower)
@@ -158,7 +166,7 @@ public class UnitHealth : NetworkBehaviour {
     {
         currentHealth = 0;
         slider.value = 0;
-        Debug.Log("Dead!");
+     //   Debug.Log("Dead!");
         animator.SetBoolTrue = "Die";
         animator.playAnimation("Die", 0);
         Invunerable = true;
