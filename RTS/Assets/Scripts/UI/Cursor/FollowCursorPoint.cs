@@ -39,7 +39,7 @@ public class FollowCursorPoint : NetworkBehaviour {
         RaycastHit hit;
         if (Physics.Raycast(inputRay, out hit))
         {
-            Vector3 dirToCursor = (hit.point + Vector3.up * 5) - transform.position;
+            Vector3 dirToCursor = (hit.point + Vector3.up * 1) - transform.position;
             ourRigidbody.AddForce(dirToCursor * speed);
             //transform.position = hit.point + Vector3.up * 5;
         }

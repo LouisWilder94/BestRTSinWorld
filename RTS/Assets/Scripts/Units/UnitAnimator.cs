@@ -12,9 +12,23 @@ public class UnitAnimator : NetworkBehaviour {
     public Animator animator;
     public NavMeshAgent navAgent;
 
-    [Header("Attack 1")]
+    [Header("Melee Attack 1")]
     public string[] attack1Anims;
     public float[] attack1AnimHitTimes;
+
+    [Header("Melee Attack Heavy")]
+    public string[] attack2Anims;
+    public float[] attack2AnimHitTimes;
+    public float[] attack2SecondaryHitTimes;
+    public float blockAnimHitTime;
+
+    [Header("Light Ranged Attack")]
+    public string[] lightRangedAttacks;
+    public float[] lightRangedAttacksShootPoint;
+
+    [Header("Heavy Ranged Attack")]
+    public string[] heavyRangedAttacks;
+    public float[] heavyRangedAttackShootPoint;
 
     public void randomAttack1(UnitHealth target)
     {
@@ -26,15 +40,8 @@ public class UnitAnimator : NetworkBehaviour {
 
         int RandomNum = (int)Random.Range(0, attack1Anims.Length);
         animator.SetTrigger(attack1Anims[RandomNum]);
-        target.TakeDamageWDelayed(unitScript.basicAttackDamage, attack1AnimHitTimes[RandomNum], transform.position, (unitScript.basicAttackDamage / 3));
+        target.TakeDamageWDelayed(unitScript.basicAttackDamage, attack1AnimHitTimes[RandomNum]);
     }
-
-    [Header("Attack 2")]
-    public string[] attack2Anims;
-    public float[] attack2AnimHitTimes;
-    public float[] attack2SecondaryHitTimes;
-
-    public float blockAnimHitTime;
 
     public void randomAttack2(UnitHealth target)
     {
@@ -46,15 +53,43 @@ public class UnitAnimator : NetworkBehaviour {
 
         int RandomNum = (int)Random.Range(0, attack2Anims.Length);
         animator.SetTrigger(attack2Anims[RandomNum]);
-        target.TakeDamageWDelayed(unitScript.basicAttackDamage, attack2AnimHitTimes[RandomNum], transform.position, (unitScript.basicAttackDamage / 2.5f));
-        target.TakeDamageWDelayed(unitScript.basicAttackDamage, attack2SecondaryHitTimes[RandomNum], transform.position, (unitScript.heavyAttackDamage / 2.5f));
+        target.TakeDamageWDelayed(unitScript.basicAttackDamage, attack2AnimHitTimes[RandomNum]);
+        target.TakeDamageWDelayedWKnockback(unitScript.basicAttackDamage, attack2SecondaryHitTimes[RandomNum], transform.position, (unitScript.heavyAttackDamage / 2.5f));
     }
 
     public void ShieldBash(UnitHealth target)
     {
         int RandomNum = (int)Random.Range(0, attack1Anims.Length);
         animator.SetTrigger(attack1Anims[RandomNum]);
-        target.TakeDamageWDelayed(unitScript.basicAttackDamage, blockAnimHitTime, transform.position, (unitScript.basicAttackDamage / 3));
+        target.TakeDamageWDelayed(unitScript.basicAttackDamage, blockAnimHitTime);
+    }
+
+    public void randomShootAttackLight(GameObject prefab, Transform targetPos, UnitHealth target, Transform shootPosition)
+    {
+        int RandomNum = (int)Random.Range(0, heavyRangedAttacks.Length);
+        animator.SetTrigger(lightRangedAttacks[RandomNum]);
+        StartCoroutine(WaitAndShoot(prefab, targetPos, target, shootPosition, lightRangedAttacksShootPoint[RandomNum]));
+    }
+
+    public void randomShootAttackHeavy(GameObject prefab, Transform targetPos, UnitHealth target, Transform shootPosition)
+    {
+        int RandomNum = (int)Random.Range(0, heavyRangedAttacks.Length);
+        animator.SetTrigger(heavyRangedAttacks[RandomNum]);
+        StartCoroutine(WaitAndShoot(prefab, targetPos, target, shootPosition, heavyRangedAttackShootPoint[RandomNum]));
+    }
+
+    public IEnumerator WaitAndShoot(GameObject prefab, Transform targetPos, UnitHealth target, Transform shootPosition, float waitTime)
+    {
+        yield return new WaitForSeconds(waitTime);
+        Fire(prefab, targetPos, target, shootPosition);
+    }
+
+    public void Fire(GameObject prefab, Transform targetPos, UnitHealth target, Transform shootPosition)
+    {
+        GameObject projectile = (GameObject)Instantiate(prefab, shootPosition.position, Quaternion.identity);
+        Projectile projscript = projectile.GetComponent<Projectile>();
+        projscript.target = target;
+        projscript.targetTrans = targetPos;
     }
 
     //[Header("Animation States")]
@@ -73,6 +108,14 @@ public class UnitAnimator : NetworkBehaviour {
         {
             animator.SetBool(value, false);
         }
+    }
+
+    public bool moving;
+
+    public void SetMoving(bool value)
+    {
+        moving = value;
+        animator.SetBool("Move", value);
     }
 
     public void playAnimation(string stateName, int layer)
@@ -94,9 +137,12 @@ public class UnitAnimator : NetworkBehaviour {
         // animator.SetFloat("Speed", navAgent.velocity.magnitude);
         // Debug.Log(navAgent.velocity.magnitude);
 
-        bool moving = false;
         if (navAgent.velocity.sqrMagnitude >= 0.2f)
             moving = true;
+        else
+        {
+            moving = false;
+        }
     }
 
     private void Awake()

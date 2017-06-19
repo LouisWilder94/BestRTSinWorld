@@ -29,7 +29,15 @@ public class UnitColor : MonoBehaviour {
 
             for (int i = 0; i < renderers.Length; i++)
             {
+            try
+            {
                 renderers[i].materials[matToChange[i]].color = playerColor;
+            }
+            catch
+            {
+                Debug.LogError(renderers[i] + "no material assigned for") ;
+            }
+
             }
 	}
 

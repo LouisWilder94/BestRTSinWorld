@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.AI;
+using System.Linq;
 
 public class Unit : NetworkBehaviour
 {
@@ -18,17 +19,22 @@ public class Unit : NetworkBehaviour
 
     [HideInInspector]
     public float startSpeed;
-
     [HideInInspector]
     public float startAcceleration;
-
     [HideInInspector]
     public float StartAngularSpeed;
+
+
+    [Space]
+
 
     [Header("Startup")]
     public NavMeshAgent navAgent;
     public UnitAnimator unitAnimator;
     public UnitHealth healthScript;
+
+
+    [Space]
 
     [Header("Behaviors")]
     public bool dodge = true;
@@ -40,26 +46,68 @@ public class Unit : NetworkBehaviour
 
     public float knockbackRotDisableTime = 0.4f;
     public float navmeshDestinationReachDist = 2f;
+    public bool canMove = true;
 
-    [Header("Choose One")]
+    [Space]
+
+    [Header("Enabled Attack Patterns")]
     public bool demonMelee;
     public bool demonRanged;
 
-    [HideInInspector]
-    public int playerOwnership;
 
-   // public Optionalt
+    [Space]
+
+
+    [Header("Ranged Behavior")]
+    public GameObject LightProjectile;
+    public Transform shootPosition;
+
+    public bool usesHeavyProjectile;
+    public GameObject HeavyProjectile;
+
+    public float rangedSkirmishDist = 20f;
+    public float dodgeBackDist = 5f;
+    public bool useMuzzle = false;
+    public float muzzleTime = 0.3f;
+
+    public float lightProjectileCooldown = 0.5f;
+    public float heavyProjectileCooldown = 2f;
+
+    [Space]
 
     [Header("Detection")]
     [HideInInspector]
     public BoxCollider detectCollider;
     public float detectDistance;
+    public const float StartCheckTime = 1.3f;
+    public float checkTime = StartCheckTime;
 
-    public const float checkTime = 0.2f;
+
+
+    //private/hidden vars
+    [HideInInspector]
+    public int playerOwnership;
+
+    private Collider unitCollider;
+
+    private bool hasTarget = false;
+
+    private bool isInRange = false;
+
+    [HideInInspector]
+    public UnitHealth target;
+
+    [HideInInspector]
+    public Transform targetPos;
+
+    [HideInInspector]
+    public bool incombat;
 
 
 
-    //Setting navmesh calues
+
+
+    //Setting navmesh values
     public float maxSpeed
     {
         get
@@ -123,9 +171,9 @@ public class Unit : NetworkBehaviour
             moving = value;
         }
     }
+    //end navmesh values
 
-    [HideInInspector]
-    public bool incombat;
+
 
 
     //Setting States
@@ -163,11 +211,16 @@ public class Unit : NetworkBehaviour
         StartAngularSpeed = navAgent.angularSpeed;
         startAcceleration = navAgent.acceleration;
         startSpeed = maxSpeed;
+        checkTime += Random.Range(0, 0.2f);
 
         navAgent = GetComponent<NavMeshAgent>();
         unitAnimator = gameObject.GetComponent<UnitAnimator>();
-        CreateDetectionCollider();
+       // CreateDetectionCollider();
 
+        InvokeRepeating("AgroUpdateCheck", 0, 2);
+        CheckAgro();
+
+        unitCollider = gameObject.GetComponent<Collider>();
       //  UnitHealth target = FunctionsHelper.GetNearestUnit(transform.position, healthScript);
      //   ChaseTarget(target, target.transform);
     }
@@ -180,8 +233,11 @@ public class Unit : NetworkBehaviour
         yield return new WaitForSeconds(disableTime);
         angularSpeed = StartAngularSpeed;
     }
+    //end setting states
 
-    //Movement and navigation
+
+
+    //Movement handeling and navigation
     public void Move(Vector3 position)
     {
         navAgent.SetDestination(position);
@@ -190,6 +246,11 @@ public class Unit : NetworkBehaviour
     public float CheckDist()
     {
         return (transform.position - navAgent.destination).magnitude;
+    }
+
+    public float CheckDistFromtarget(Transform _Target)
+    {
+            return (transform.position - _Target.position).magnitude;
     }
 
     public void Dodge(Vector3 objToAvoid, float power)
@@ -223,34 +284,79 @@ public class Unit : NetworkBehaviour
 
     public IEnumerator Strafe()
     {
+        int checks = 0;
+
         if (strafe == false)
             yield break;
+        canMove = false;
 
         CompleteDest = true;
-        Vector3 pos = GetStrafePos(strafeDist);
+        Vector3 pos = GetRandomStrafePos(strafeDist);
         navAgent.SetDestination(pos);
         while (true)
         {
-            angularSpeed = 0f;
-            //currentSpeed = 60f;
-            maxSpeed = StrafePower;
-            Acceleration = 100f;
-        //    Debug.Log(angularSpeed);
+            checks++;
+            navAgent.SetDestination(pos);
 
-            yield return new WaitForSeconds(checkTime);
-
-            if (CheckDist() <= navmeshDestinationReachDist | navAgent.destination != pos)
+            if (CheckDist() <= navmeshDestinationReachDist | checks >= 10)
             {
                 angularSpeed = StartAngularSpeed;
                 maxSpeed = startSpeed;
                 Acceleration = startAcceleration;
+                canMove = true;
                 yield break;
             }
 
+
+            angularSpeed = 0f;
+            maxSpeed = StrafePower;
+            Acceleration = StrafePower * 20;
+
+
+
+            yield return new WaitForSeconds(checkTime);
         }
 
     }
 
+    public IEnumerator DodgeBack(Vector3 fromPosition)
+    {
+        int checks = 0;
+
+        if (dodge == false)
+            yield break;
+
+        transform.LookAt(fromPosition);
+        canMove = false;
+
+        CompleteDest = true;
+        Vector3 pos = GetPositionFromLocal(Vector3.back, dodgeBackDist);
+        navAgent.SetDestination(pos);
+        while (true)
+        {
+            checks++;
+            navAgent.SetDestination(pos);
+
+            if (CheckDist() <= navmeshDestinationReachDist | checks >= 20)
+            {
+                angularSpeed = StartAngularSpeed;
+                maxSpeed = startSpeed;
+                Acceleration = startAcceleration;
+                canMove = true;
+                yield break;
+            }
+
+
+            angularSpeed = 0f;
+            maxSpeed = StrafePower;
+            Acceleration = StrafePower * 20;
+
+
+
+            yield return new WaitForSeconds(0.1f);
+        }
+
+    }
 
     bool CompleteDest = false;
     public IEnumerator SetDestination(Vector3 target)
@@ -271,23 +377,67 @@ public class Unit : NetworkBehaviour
 
     }
 
-    public Vector3 GetStrafePos(float distance)
+    public Vector3 GetRandomStrafePos(float distance)
     {
         Vector3 dist;
         float random = Random.Range(0f, 2f);
         if (random <= 1f)
         {
-            dist = Vector3.left * distance;
+            dist = Vector3.left;
         }
         else
         {
-            dist = Vector3.right * distance;
+            dist = Vector3.right;
         }
 
-        return ((Quaternion.AngleAxis(transform.rotation.y, Vector3.up) * dist) + transform.position);
-    } 
+        return GetPositionFromLocal(dist, distance);
+    }
 
-    //Attacking
+    public void RotateToDirection(Transform _target)
+    {
+        Vector3 difference = _target.position - transform.position;
+        difference.Normalize();
+
+        float rotZ = Mathf.Atan2(difference.x, difference.z) * Mathf.Rad2Deg; //find the angle in degrees
+        Quaternion lookRotation = Quaternion.LerpUnclamped(transform.rotation, Quaternion.Euler(0, rotZ, 0), 1f);
+        transform.rotation = lookRotation;
+    }
+
+    IEnumerator rotate(Transform _target)
+    {
+        while (true)
+        {
+            angularSpeed = 0;
+            RotateToDirection(_target);
+            if (hasTarget == false)
+            {
+                yield break;
+                angularSpeed = StartAngularSpeed;
+            }
+
+
+            yield return new WaitForEndOfFrame();
+        }
+    }
+
+    public Vector3 GetPositionFromLocal(Vector3 directionFromLocal, float distance)
+    {
+        Vector3 rot = transform.rotation.eulerAngles;
+        Vector3 vec = Quaternion.Euler(rot.x, rot.y, rot.z) * (directionFromLocal) * distance;
+        Vector3 pos = transform.position + vec;
+        return pos;
+    }
+
+    public Vector3 GetPositionDistanceFromPoint(Vector3 position, float distance)
+    {
+        Vector3 angle = (transform.position - position).normalized;
+        return position + angle * distance;
+    }
+    //end movement handling and navigation
+
+
+
+    //Attacks
     [HideInInspector]
     public bool canAttack = true;
 
@@ -395,6 +545,19 @@ public class Unit : NetworkBehaviour
 
         unitAnimator.randomAttack2(target);
     }
+    //end Attacks
+
+
+     
+      //ranged attacks
+
+
+    public void CreateMuzzleEffect(GameObject prefab)
+    {
+        GameObject FX = (GameObject)Instantiate(prefab, shootPosition.position, shootPosition.rotation);
+        Destroy(FX, muzzleTime);
+    }
+    //End ranged attacks
 
 
 
@@ -415,21 +578,16 @@ public class Unit : NetworkBehaviour
         if (hasTarget == true)
             return;
 
-        StartCoroutine(Chase(target, targetPos));
-        //FunctionsHelper.GetNearestTargetWithTag(GameManager.instance.playerTags[0], Vector3.up);
-    }
+        if (demonMelee == true)
+        {
+            StartCoroutine(MeleeChase(target, targetPos));
+        }
+        else if(demonRanged == true)
+        {
+            StartCoroutine(RangedChase(target, targetPos));
+        }
 
-    // public void OnTriggerStay(Collider other)
-    // {
-    //     if (hasTarget)
-    //         return;
-    //
-    //     if (other.GetComponent<UnitHealth>() && other.tag != gameObject.tag) //&& other.tag != gameObject.tag)
-    //     {
-    //        Debug.Log(other);
-    //       StartCoroutine(Chase(other.GetComponent<UnitHealth>(), other.transform));
-    //    }
-    // }
+    }
 
     public void OnTriggerEnter(Collider other)
     {
@@ -439,40 +597,52 @@ public class Unit : NetworkBehaviour
              if (other.GetComponent<UnitHealth>() && other.tag != gameObject.tag) //&& other.tag != gameObject.tag)
              {
             //    Debug.Log(other);
-               StartCoroutine(Chase(other.GetComponent<UnitHealth>(), other.transform));
+            //   StartCoroutine(Chase(other.GetComponent<UnitHealth>(), other.transform));
             }
     }
 
+
+    private int agroChecks = 0;
     public void CheckAgro()
     {
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, detectDistance);
-        int i = 0;
-        while (i < hitColliders.Length)
+        if (hasTarget)
+            return;
+        agroChecks++;
+
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, detectDistance, GameManager.instance.unitLayermask);
+
+        List<Collider> possibleTargets = hitColliders.ToList<Collider>();
+        possibleTargets.Remove(unitCollider);
+
+        int random = Random.Range(0, possibleTargets.Count);
+
+        try
         {
-            if (hitColliders[i].GetComponent<UnitHealth>() && hitColliders[i].gameObject.tag != gameObject.tag )
+            if (possibleTargets[random].tag != this.tag)
             {
-                try
-                {
-                    Chase(hitColliders[i].GetComponent<UnitHealth>(), hitColliders[i].transform);
-                }
-                catch
-                {
-                    return;
-                }
+                UnitHealth _target = possibleTargets[random].GetComponent<UnitHealth>();
+                ChaseTarget(_target, _target.transform);
+                agroChecks = 0;
             }
-            i++;
+            else if (agroChecks <= 2)
+            {
+                CheckAgro();
+            }
         }
+        catch
+        {
+            return;
+        }
+
+
     }
+    //end Target Handling
 
-    bool hasTarget = false;
-    bool isInRange = false;
-    //bool breakTarget = false;
-    public UnitHealth target;
-    public Transform targetPos;
 
+    //Combat Behavior
+    float dist;
     int checks;
-
-    public IEnumerator Chase(UnitHealth _target, Transform _targetPos)
+    public IEnumerator MeleeChase(UnitHealth _target, Transform _targetPos)
     {
         try
         {
@@ -494,13 +664,14 @@ public class Unit : NetworkBehaviour
 
         target = _target;
         targetPos = _targetPos;
+     //   StartCoroutine(rotate(_targetPos));
         checks = 0;
 
         while (true)
         {
             try
             {
-                navAgent.destination = _targetPos.position;
+                    navAgent.destination = _targetPos.position;
             }
             catch
             {
@@ -512,7 +683,7 @@ public class Unit : NetworkBehaviour
                 yield break;
             }
 
-            if (_target == null | checks >= 20)
+            if (_target == null)
             {
                 SetBlocking(false);
                 SetIncombat(false);
@@ -521,6 +692,14 @@ public class Unit : NetworkBehaviour
                 CheckAgro();
                 yield break;
             }
+
+
+        //    if (checks >= 30)
+        //    {
+        //        hasTarget = false;
+        //        CheckAgro();
+        //        yield break;
+        //    }
 
 
 
@@ -535,8 +714,6 @@ public class Unit : NetworkBehaviour
 
 
             //start behavior demon melee
-            if (demonMelee == true)
-            {
                 if (CheckDist() <= meleeRange)
                 {
                     int random = (int)Random.Range(-0.5f, 7.4f);
@@ -628,18 +805,180 @@ public class Unit : NetworkBehaviour
                         yield return new WaitForSeconds(0.5f);
                     }
                 }
-            }
-            //end Behavior demon melee
-            else if (demonRanged == true)
-            {
-
-            }
-            //  transform.rotation.SetFromToRotation(transform.position, _targetPos.position);
-;
             checks++;
 
 
         }
     }
 
+    public IEnumerator RangedChase(UnitHealth _target, Transform _targetPos)
+    {
+        try
+        {
+            if (_target == null)
+            {
+                SetBlocking(false);
+                SetIncombat(false);
+                hasTarget = false;
+                Debug.Log("Lost Target");
+                yield break;
+            }
+        }
+        catch
+        {
+            Debug.LogError("No target on starup");
+            CheckAgro();
+        }
+
+
+        target = _target;
+        targetPos = _targetPos;
+        //   StartCoroutine(rotate(_targetPos));
+        checks = 0;
+        SetIncombat(true);
+
+        try
+        {
+            navAgent.destination = GetPositionDistanceFromPoint(_targetPos.position, rangedSkirmishDist);
+        }
+        catch
+        {
+            SetIncombat(false);
+            hasTarget = false;
+            CheckAgro();
+            yield break;
+        }
+
+        while (true)
+        {
+
+
+
+            if (_target == null)
+            {
+               SetIncombat(false);
+                hasTarget = false;
+                Debug.Log("Lost Target");
+                CheckAgro();
+                yield break;
+            }
+
+
+            //    if (checks >= 30)
+            //    {
+            //        hasTarget = false;
+            //        CheckAgro();
+            //        yield break;
+            //    }
+
+
+
+         //   SetIncombat(true);
+            hasTarget = true;
+
+
+            yield return new WaitForSeconds(checkTime);
+                try
+                {
+                    dist = CheckDistFromtarget(_targetPos);
+                }
+                catch
+                {
+                    hasTarget = false;
+                    CheckAgro();
+                    yield break;
+                }
+
+                int random = (int)Random.Range(0, 5.4f);
+
+
+            //Debug.Log(dist);
+            if (dist <= meleeRange)
+            {
+                if(random == 0 | random == 1)
+                {
+                    Attack(target);
+                }
+                else if(random == 2 | random == 3)
+                {
+                    DodgeBack(_targetPos.position);
+                }
+                else if(random == 4 | random == 5)
+                {
+                    navAgent.destination = GetPositionDistanceFromPoint(_targetPos.position, rangedSkirmishDist);
+                }
+            }
+            else if (dist <= rangedRange)
+            {
+                if (random == 0 && canAttack == true)
+                {
+                    transform.LookAt(_targetPos);
+                   // DodgeBack(_targetPos.position);
+                    unitAnimator.randomShootAttackLight(LightProjectile, targetPos, target, shootPosition);
+                    RechargeAttackTimer(lightProjectileCooldown);
+                    yield return new WaitForSeconds(lightProjectileCooldown);
+                }
+                else if (random == 1 && canMove == true)
+                {
+                    navAgent.destination = GetPositionDistanceFromPoint(_targetPos.position, rangedSkirmishDist);
+                }
+                else if (random == 2 && canMove == true)
+                {
+                    navAgent.destination = GetPositionDistanceFromPoint(_targetPos.position, rangedSkirmishDist);
+                }
+                else if (random == 3 && canMove == true)
+                {
+                    Strafe();
+                }
+                else if (random == 4 && canAttack == true)
+                {
+                    transform.LookAt(_targetPos);
+                    // DodgeBack(_targetPos.position);
+                    unitAnimator.randomShootAttackLight(LightProjectile, targetPos, target, shootPosition);
+                    RechargeAttackTimer(lightProjectileCooldown);
+                    yield return new WaitForSeconds(lightProjectileCooldown);
+                    transform.LookAt(_targetPos);
+                    // DodgeBack(_targetPos.position);
+                    unitAnimator.randomShootAttackLight(LightProjectile, targetPos, target, shootPosition);
+                    RechargeAttackTimer(lightProjectileCooldown);
+                }
+                else if (random == 5 && canAttack == true)
+                {
+                    Debug.Log("Heavy Atk");
+                    transform.LookAt(_targetPos);
+                    // DodgeBack(_targetPos.position);
+                    unitAnimator.randomShootAttackHeavy(HeavyProjectile, targetPos, target, shootPosition);
+                    RechargeAttackTimer(heavyProjectileCooldown);
+                    yield return new WaitForSeconds(heavyProjectileCooldown);
+                }
+
+            }
+            checks++;
+
+
+        }
+    }
+    //End Combat Behavior
+
+
+
+    //Testing
+    private void OnDrawGizmos()
+    {
+        //  Gizmos.DrawWireSphere(GetPositionFromLocal(Vector3.left, strafeDist), 1f);
+        //    Gizmos.DrawWireSphere(GetPositionFromLocal(Vector3.right, strafeDist), 1f);
+        //   Gizmos.DrawWireSphere(GetPositionFromLocal(Vector3.forward, strafeDist), 1f);
+        //   Gizmos.DrawWireSphere(GetPositionFromLocal(Vector3.back, strafeDist), 1f);
+        //  Gizmos.DrawWireSphere(GetPositionDistanceFromPoint(FunctionsHelper.GetCursorPosition(0), rangedRange), 5f);
+
+     //   Gizmos.DrawWireSphere(GetPositionDistanceFromPoint(targetPos.position, dodgeBackDist), 1f);
+    }
+
+    public void AgroUpdateCheck()
+    {
+    //    Debug.Log("CheckingTargets");
+        CheckAgro();
+    }
+
+    //TODO:Target Facing, Optimize agro check with high unit numbers
 }
