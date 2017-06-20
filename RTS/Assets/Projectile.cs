@@ -21,7 +21,12 @@ public class Projectile : MonoBehaviour {
     public float explosionRadius;
     public GameObject explosionPrefab;
     public float explosionPrefabFizzleTime;
-    
+
+    private void Start()
+    {
+        Invoke("fizzle", fizzleTime);
+    }
+
     public void updateTarget(UnitHealth _target, Transform _targetTrans)
     {
         target = _target;

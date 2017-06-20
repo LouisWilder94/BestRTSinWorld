@@ -7,6 +7,7 @@ public class UnitController : NetworkBehaviour {
 
     public GameObject meleePrefab;
     public GameObject rangedPrefab;
+    public GameObject meleeAngelPrefab;
     public Player playerComponent;
 
     string myTag;

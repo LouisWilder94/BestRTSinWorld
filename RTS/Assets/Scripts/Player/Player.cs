@@ -88,7 +88,7 @@ public class Player : NetworkBehaviour {
         }
         if (Input.GetKeyDown(KeyCode.O))
         {
-            GameObject clone = (GameObject)Instantiate(unitController.meleePrefab, mousePosition, Quaternion.identity);
+            GameObject clone = (GameObject)Instantiate(unitController.meleeAngelPrefab, mousePosition, Quaternion.identity);
             clone.GetComponent<Unit>().playerOwnership = 2;
             clone.tag = GameManager.instance.playerTags[2];
             clone.GetComponent<UnitColor>().playerNumber = 2;

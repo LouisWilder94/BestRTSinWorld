@@ -17,6 +17,9 @@ public class Unit : NetworkBehaviour
     public float meleeRange = 6f;
     public float rangedRange = 20f;
 
+    public int unitCost;
+    public float buildTime;
+
     [HideInInspector]
     public float startSpeed;
     [HideInInspector]
@@ -53,6 +56,7 @@ public class Unit : NetworkBehaviour
     [Header("Enabled Attack Patterns")]
     public bool demonMelee;
     public bool demonRanged;
+    public bool angleSpearman;
 
 
     [Space]
@@ -332,6 +336,7 @@ public class Unit : NetworkBehaviour
         CompleteDest = true;
         Vector3 pos = GetPositionFromLocal(Vector3.back, dodgeBackDist);
         navAgent.SetDestination(pos);
+        unitAnimator.DodgeBack();
         while (true)
         {
             checks++;
@@ -339,6 +344,7 @@ public class Unit : NetworkBehaviour
 
             if (CheckDist() <= navmeshDestinationReachDist | checks >= 20)
             {
+                yield return new WaitForSeconds(0.1f);
                 angularSpeed = StartAngularSpeed;
                 maxSpeed = startSpeed;
                 Acceleration = startAcceleration;
@@ -550,8 +556,6 @@ public class Unit : NetworkBehaviour
 
      
       //ranged attacks
-
-
     public void CreateMuzzleEffect(GameObject prefab)
     {
         GameObject FX = (GameObject)Instantiate(prefab, shootPosition.position, shootPosition.rotation);
@@ -727,7 +731,7 @@ public class Unit : NetworkBehaviour
                         if (rand == 0)
                             SetBlocking(true);
                         if (rand == 1)
-                            OverWhelm(target);
+                            StartCoroutine(OverWhelm(target));
                     }
 
                     if (random == 0 && canAttack == true && targetPos != null)
@@ -748,7 +752,7 @@ public class Unit : NetworkBehaviour
                         healthScript.blocking = true;
                         yield return new WaitForSeconds(1.0f);
                         if (targetPos != null)
-                            unitAnimator.ShieldBash(target);
+                            unitAnimator.BlockAttack(target);
                         healthScript.blocking = false;
                         SetBlocking(false);
                         yield return new WaitForSeconds(0.1f);
@@ -776,7 +780,7 @@ public class Unit : NetworkBehaviour
                             CheckAgro();
                             yield break;
                         }
-                        OverWhelm(target);
+                       StartCoroutine(OverWhelm(target));
                         yield return new WaitForSeconds(0.4f);
                         try
                         {
@@ -901,7 +905,7 @@ public class Unit : NetworkBehaviour
                 }
                 else if(random == 2 | random == 3)
                 {
-                    DodgeBack(_targetPos.position);
+                    StartCoroutine(DodgeBack(_targetPos.position));
                 }
                 else if(random == 4 | random == 5)
                 {
@@ -928,7 +932,7 @@ public class Unit : NetworkBehaviour
                 }
                 else if (random == 3 && canMove == true)
                 {
-                    Strafe();
+                    StartCoroutine(Strafe());
                 }
                 else if (random == 4 && canAttack == true)
                 {
@@ -955,7 +959,6 @@ public class Unit : NetworkBehaviour
             }
             checks++;
 
-
         }
     }
     //End Combat Behavior
@@ -978,6 +981,14 @@ public class Unit : NetworkBehaviour
     {
     //    Debug.Log("CheckingTargets");
         CheckAgro();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            StartCoroutine(DodgeBack(FunctionsHelper.GetCursorPosition(0)));
+        }
     }
 
     //TODO:Target Facing, Optimize agro check with high unit numbers
