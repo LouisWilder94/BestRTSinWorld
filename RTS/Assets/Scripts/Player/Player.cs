@@ -47,7 +47,7 @@ public class Player : NetworkBehaviour {
             }
             else
             {
-                Debug.Log("Mouse Not Hitting Something 8[]D~~~~~");
+                Debug.Log("Mouse Not Hitting Something");
                 return Vector3.up;
             }
         }
@@ -88,7 +88,23 @@ public class Player : NetworkBehaviour {
         }
         if (Input.GetKeyDown(KeyCode.O))
         {
-            GameObject clone = (GameObject)Instantiate(unitController.meleePrefab, mousePosition, Quaternion.identity);
+            GameObject clone = (GameObject)Instantiate(unitController.meleeAngelPrefab, mousePosition, Quaternion.identity);
+            clone.GetComponent<Unit>().playerOwnership = 2;
+            clone.tag = GameManager.instance.playerTags[2];
+            clone.GetComponent<UnitColor>().playerNumber = 2;
+            NetworkServer.Spawn(clone);
+        }
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            GameObject clone = (GameObject)Instantiate(unitController.rangedPrefab, mousePosition, Quaternion.identity);
+            clone.GetComponent<Unit>().playerOwnership = 1;
+            clone.tag = GameManager.instance.playerTags[1];
+            clone.GetComponent<UnitColor>().playerNumber = 1;
+            NetworkServer.Spawn(clone);
+        }
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            GameObject clone = (GameObject)Instantiate(unitController.rangedPrefab, mousePosition, Quaternion.identity);
             clone.GetComponent<Unit>().playerOwnership = 2;
             clone.tag = GameManager.instance.playerTags[2];
             clone.GetComponent<UnitColor>().playerNumber = 2;

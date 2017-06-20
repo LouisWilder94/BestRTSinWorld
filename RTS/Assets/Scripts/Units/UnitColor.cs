@@ -17,11 +17,27 @@ public class UnitColor : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        playerColor = GameManager.instance.playerColors[playerNumber];
+        try
+        {
+            playerColor = GameManager.instance.playerColors[playerNumber];
+        }
+        catch
+        {
+            return;
+        }
+
 
             for (int i = 0; i < renderers.Length; i++)
             {
+            try
+            {
                 renderers[i].materials[matToChange[i]].color = playerColor;
+            }
+            catch
+            {
+                Debug.LogError(renderers[i] + "no material assigned for") ;
+            }
+
             }
 	}
 

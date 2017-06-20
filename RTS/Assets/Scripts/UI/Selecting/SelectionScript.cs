@@ -71,7 +71,7 @@ public class SelectionScript : MonoBehaviour {
 
             foreach(var objects in selectedObjects)
             {
-                Debug.Log(objects.gameObject.name);
+             //   Debug.Log(objects.gameObject.name);
             }
 
             //this calls the Update UI method in the dynamicUI

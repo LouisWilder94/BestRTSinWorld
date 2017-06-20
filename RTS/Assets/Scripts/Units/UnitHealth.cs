@@ -102,12 +102,33 @@ public class UnitHealth : NetworkBehaviour {
         //healthBar.sizeDelta = new Vector2(currentHealth, healthBar.sizeDelta.y);
     }
 
-    public void TakeDamageWDelayed(float damage, float hitTime, Vector3 knockbackSource, float knockbackPower)
+    public void TakeDamageWDelayedWKnockback(float damage, float hitTime, Vector3 knockbackSource, float knockbackPower)
     {
-        StartCoroutine(TakeDamageWithDelayIEnumberator(damage, hitTime, knockbackSource, knockbackPower));
+        try
+        {
+            StartCoroutine(TakeDamageWithDelayIEnumeratorWKnockback(damage, hitTime, knockbackSource, knockbackPower));
+        }
+        catch
+        {
+            return;
+        }
+
     }
 
-    public IEnumerator TakeDamageWithDelayIEnumberator(float damage, float hitTime, Vector3 knockbackSource, float knockbackPower)
+    public void TakeDamageWDelayed(float damage, float hitTime)
+    {
+        try
+        {
+            StartCoroutine(TakeDamageWithDelayIEnumerator(damage, hitTime));
+        }
+        catch
+        {
+            return;
+        }
+
+    }
+
+    public IEnumerator TakeDamageWithDelayIEnumeratorWKnockback(float damage, float hitTime, Vector3 knockbackSource, float knockbackPower)
     {
         yield return new WaitForSeconds(hitTime);
 
@@ -141,6 +162,33 @@ public class UnitHealth : NetworkBehaviour {
         }
     }
 
+    public IEnumerator TakeDamageWithDelayIEnumerator(float damage, float hitTime)
+    {
+        yield return new WaitForSeconds(hitTime);
+
+        if (Invunerable == true)
+        {
+            yield break;
+        }
+
+        if (blocking == false)
+        {
+            currentHealth -= damage;
+            slider.value -= damage;
+            CreateAndDestroyEffect(bloodSpurtPrefab);
+        }
+        else
+        {
+            CreateAndDestroyEffect(sparksPrefab);
+            currentHealth -= (damage * blockDmgRatio);
+            slider.value -= (damage * blockDmgRatio);
+        }
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+
     public void gainHealth(float amount)
     {
         if (!isServer)
@@ -158,7 +206,7 @@ public class UnitHealth : NetworkBehaviour {
     {
         currentHealth = 0;
         slider.value = 0;
-        Debug.Log("Dead!");
+     //   Debug.Log("Dead!");
         animator.SetBoolTrue = "Die";
         animator.playAnimation("Die", 0);
         Invunerable = true;

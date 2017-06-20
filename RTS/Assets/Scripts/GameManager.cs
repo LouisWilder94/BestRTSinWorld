@@ -14,6 +14,8 @@ public class GameManager : NetworkBehaviour {
 
     public Color[] playerColors;
 
+    public LayerMask unitLayermask;
+
 
 
     private void Start()
