@@ -104,7 +104,7 @@ public class Player : NetworkBehaviour {
         }
         if (Input.GetKeyDown(KeyCode.L))
         {
-            GameObject clone = (GameObject)Instantiate(unitController.rangedPrefab, mousePosition, Quaternion.identity);
+            GameObject clone = (GameObject)Instantiate(unitController.rangedAngelPrefab, mousePosition, Quaternion.identity);
             clone.GetComponent<Unit>().playerOwnership = 2;
             clone.tag = GameManager.instance.playerTags[2];
             clone.GetComponent<UnitColor>().playerNumber = 2;
