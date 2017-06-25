@@ -23,58 +23,23 @@ public enum UpgradeType
 }
 
 public class Factory : MonoBehaviour {
-    //singleton stuff
-    private static Factory _instance;
-    public static Factory instance
-    {
-        get
-        {
-            if (_instance == null)
-                _instance = FindObjectOfType<Factory>();
-            return _instance;
-        }
-    }
-    //singleton stuff
+    ////singleton stuff
+    //private static Factory _instance;
+    //public static Factory instance
+    //{
+    //    get
+    //    {
+    //        if (_instance == null)
+    //            _instance = FindObjectOfType<Factory>();
+    //        return _instance;
+    //    }
+    //}
+    ////singleton stuff
 
     public Material wireframeMaterial;
     public GameObject barracksPrefab;
 
-    GameObject buildingPreview;
-
-    delegate void AttachBuildingToCursor(GameObject buildingPreview, BuildingType type);
-    AttachBuildingToCursor attachBuildToCursor;
-
-    private void Start()
-    {
-        BuildingPlace buildingPlaceScript = FindObjectOfType<BuildingPlace>();
-        if (buildingPlaceScript != null)
-            attachBuildToCursor += buildingPlaceScript.AttachPreviewToCursor;
-    }
-
-    public void PreviewBuilding(BuildingType type)
-    {
-        GameObject previewPrefab;
-
-        switch (type)
-        {
-            case BuildingType.Barracks:
-                previewPrefab = barracksPrefab;
-                break;
-            default:
-                previewPrefab = null;
-                break;
-        }
-
-        buildingPreview = Instantiate(previewPrefab);
-        buildingPreview.GetComponent<Renderer>().material = wireframeMaterial;
-        buildingPreview.GetComponent<Collider>().enabled = false;
-        buildingPreview.GetComponent<Building>().enabled = false;
-
-        if (attachBuildToCursor != null)
-            attachBuildToCursor(buildingPreview, type);
-    }
-
-    public void CreateBuilding(Vector3 position, BuildingType type)
+    private GameObject BuildingPrefabBank(BuildingType type)
     {
         GameObject buildingPrefab;
 
@@ -84,19 +49,55 @@ public class Factory : MonoBehaviour {
                 buildingPrefab = barracksPrefab;
                 break;
             default:
+                Debug.LogWarning("Factory was not passed a valid building type.");
                 buildingPrefab = null;
                 break;
         }
 
+        return buildingPrefab;
+    }
+
+    public GameObject CreatePreviewBuilding(BuildingType type)
+    {
+        GameObject previewPrefab = BuildingPrefabBank(type);
+
+        GameObject buildingPreview = Instantiate(previewPrefab);
+        buildingPreview.GetComponent<Renderer>().material = wireframeMaterial;
+        //buildingPreview.GetComponent<Collider>().isTrigger = true;
+        //buildingPreview.GetComponent<Collider>().enabled = false;
+        //buildingPreview.GetComponent<Building>().enabled = false;
+
+        return buildingPreview;
+    }
+
+    public void CreateBuilding(Vector3 position, BuildingType type)
+    {
+        GameObject buildingPrefab = BuildingPrefabBank(type);
+
         GameObject building = Instantiate(buildingPrefab, position, Quaternion.identity);
     }
 
-    public void CreateUnit(string unitName)
+    public GameObject meleePrefab;
+
+    public void CreateUnit(Vector3 position, UnitType type)
     {
-        
+        GameObject unitPrefab;
+
+        switch (type)
+        {
+            case UnitType.Melee:
+                unitPrefab = meleePrefab;
+                break;
+            default:
+                Debug.LogWarning("Factory was not passed a valid unit type.");
+                unitPrefab = null;
+                break;
+        }
+
+        GameObject unit = Instantiate(unitPrefab, position, Quaternion.identity);
     }
 
-    public GameObject CreateMonster(string monsterName)
+    public GameObject CreateMonster(MonsterType type)
     {
         return null;
     }

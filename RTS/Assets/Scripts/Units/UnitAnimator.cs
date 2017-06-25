@@ -57,7 +57,7 @@ public class UnitAnimator : NetworkBehaviour {
         int RandomNum = (int)Random.Range(0, attack2Anims.Length);
         animator.SetTrigger(attack2Anims[RandomNum]);
         target.TakeDamageWDelayed(unitScript.basicAttackDamage, attack2AnimHitTimes[RandomNum]);
-        target.TakeDamageWDelayedWKnockback(unitScript.basicAttackDamage, attack2SecondaryHitTimes[RandomNum], transform.position, (unitScript.heavyAttackDamage / 2.5f));
+        target.TakeDamageWDelayedWKnockback(unitScript.basicAttackDamage, attack2SecondaryHitTimes[RandomNum], transform.position, (unitScript.heavyAttackDamage));
     }
 
     public void BlockAttack(UnitHealth target)

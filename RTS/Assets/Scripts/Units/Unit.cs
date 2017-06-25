@@ -940,11 +940,12 @@ public class Unit : NetworkBehaviour
                     // DodgeBack(_targetPos.position);
                     unitAnimator.randomShootAttackLight(LightProjectile, targetPos, target, shootPosition);
                     RechargeAttackTimer(lightProjectileCooldown);
-                    yield return new WaitForSeconds(lightProjectileCooldown);
+                    yield return new WaitForSeconds(1f);
                     transform.LookAt(_targetPos);
                     // DodgeBack(_targetPos.position);
                     unitAnimator.randomShootAttackLight(LightProjectile, targetPos, target, shootPosition);
                     RechargeAttackTimer(lightProjectileCooldown);
+                    yield return new WaitForSeconds(0.4f);
                 }
                 else if (random == 5 && canAttack == true)
                 {
@@ -963,7 +964,7 @@ public class Unit : NetworkBehaviour
     }
     //End Combat Behavior
 
-
+        //TODO:Jump back and thrust spear attack
 
     //Testing
     private void OnDrawGizmos()
@@ -985,10 +986,10 @@ public class Unit : NetworkBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            StartCoroutine(DodgeBack(FunctionsHelper.GetCursorPosition(0)));
-        }
+      //  if (Input.GetKeyDown(KeyCode.F))
+      //  {
+      //      StartCoroutine(DodgeBack(FunctionsHelper.GetCursorPosition(0)));
+      //  }
     }
 
     //TODO:Target Facing, Optimize agro check with high unit numbers

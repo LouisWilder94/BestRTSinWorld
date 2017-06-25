@@ -10,21 +10,23 @@ public class BuildingPlace : MonoBehaviour
     BuildingType type;
 
     // Reference to the Factory script.
-    delegate void FactoryHandler(Vector3 position, BuildingType type);
-    FactoryHandler callCreateBuilding;
+    delegate void FactoryCreateBuilding(Vector3 position, BuildingType type);
+    FactoryCreateBuilding onCallCreateBuilding;
+    delegate GameObject FactoryCreatePreview(BuildingType type);
+    FactoryCreatePreview onCallCreatePreview;
 
     private void Start()
     {
         Factory factoryScript = FindObjectOfType<Factory>();
         if (factoryScript != null)
-            callCreateBuilding += factoryScript.CreateBuilding;
+            onCallCreatePreview += factoryScript.CreatePreviewBuilding;
+            onCallCreateBuilding += factoryScript.CreateBuilding;          
     }
 
     //method runs when UI button is clicked
-    public void AttachPreviewToCursor(GameObject building, BuildingType type)
-    {
-        this.type = type;
-        selectedBuilding = building;
+    public void AttachPreviewToCursor(BuildingType type)
+    {      
+        selectedBuilding = onCallCreatePreview(type);
         StartCoroutine(BuildingPreview());
     }
 
@@ -39,18 +41,21 @@ public class BuildingPlace : MonoBehaviour
             RaycastHit hit;
 
             //checks if mouse is over terrain
-            if (Physics.Raycast(ray, out hit))
+            if (Physics.Raycast(ray, out hit) && !UIClickBlocker.isHovered)
             {
                 selectedBuilding.SetActive(true);
 
-                //make preview follow the mouse and fake the grid-like placement
-                selectedBuilding.transform.position = new Vector3((int)hit.point.x, ((int)hit.point.y + selectedBuilding.GetComponent<MeshRenderer>().bounds.extents.y), (int)hit.point.z);
+                if (hit.transform.gameObject.layer == 8)
+                {
+                    //make preview follow the mouse and fake the grid-like placement
+                    selectedBuilding.transform.position = new Vector3((int)hit.point.x, ((int)hit.point.y + selectedBuilding.GetComponent<MeshRenderer>().bounds.extents.y), (int)hit.point.z);
+                }
 
                 //placing the building
                 if (Input.GetMouseButtonDown(0))
                 {
-                    if (callCreateBuilding != null)
-                        callCreateBuilding(selectedBuilding.transform.position, type);
+                    if (onCallCreateBuilding != null)
+                        onCallCreateBuilding(selectedBuilding.transform.position, type);
 
                     Destroy(selectedBuilding);
                 }

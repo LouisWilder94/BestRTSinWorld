@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class DynamicUI : MonoBehaviour {
     // This script is for changing the context buttons that pop up based on what you've clicked on. 
     // Eventually it will also handle the selection window, which will show the stats and health of the units you have selected.
-    // Currently it only interacts with the SelectionScript through a delegate.
+    // Interacts with (through delegates): BuildingPlace, Factory
 
     ////singleton stuff
     //private static DynamicUI _instance;
@@ -28,16 +28,20 @@ public class DynamicUI : MonoBehaviour {
     List<Button> buttons = new List<Button>();
 
     // References to the Factory script.
-    delegate void FactoryPreview(BuildingType type);
-    FactoryPreview callPreviewBuilding;
-    delegate void FactoryUnit(UnitType type);
-    FactoryUnit callCreateUnit;
+    delegate void BuildingPreview(BuildingType type);
+    BuildingPreview onCallPreviewBuilding;
+    delegate void FactoryUnit(Vector3 position, UnitType type);
+    FactoryUnit onCallCreateUnit;
 
     private void Start()
     {
+        BuildingPlace buildingPlaceScript = FindObjectOfType<BuildingPlace>();
+        if (buildingPlaceScript != null)
+            onCallPreviewBuilding += buildingPlaceScript.AttachPreviewToCursor;
+
         Factory factoryScript = FindObjectOfType<Factory>();
         if (factoryScript != null)
-            callPreviewBuilding += factoryScript.PreviewBuilding;
+            onCallCreateUnit += factoryScript.CreateUnit;
     }
 
     // UpdateUI is only called through the SelectionScript when a unit is selected or deselected.
@@ -46,11 +50,10 @@ public class DynamicUI : MonoBehaviour {
     // one type of object, like units / buildings, etc.
     public void UpdateUI(List<SelectableUnitComponent> selectedObjects)
     {
-        Debug.Log("UpdateUI was called.");
+        Debug.Log(selectedObjects.Count);
 
         if (selectedObjects.Count > 0)
         {
-            Debug.Log("There were units selected.");
             if (selectedObjects[0].GetComponent<Unit>() != null)
             {
                 // if unit is builder
@@ -59,8 +62,10 @@ public class DynamicUI : MonoBehaviour {
                     ButtonCache barracksButton = Instantiate(buttonPrefab, topPanel.transform).GetComponent<ButtonCache>();
                     barracksButton.textComponent.text = "Barracks";
 
-                    if (callPreviewBuilding != null)
-                        barracksButton.buttonComponent.onClick.AddListener(delegate { callPreviewBuilding(BuildingType.Barracks); } );
+                    if (onCallPreviewBuilding != null)
+                        barracksButton.buttonComponent.onClick.AddListener(delegate { onCallPreviewBuilding(BuildingType.Barracks); } );
+
+                    buttons.Add(barracksButton.buttonComponent);
                 }
             }
 
@@ -72,14 +77,16 @@ public class DynamicUI : MonoBehaviour {
                     ButtonCache meleeButton = Instantiate(buttonPrefab, topPanel.transform).GetComponent<ButtonCache>();
                     meleeButton.textComponent.text = "Melee";
 
-                    if (callCreateUnit != null)
-                        meleeButton.buttonComponent.onClick.AddListener(delegate { callCreateUnit(UnitType.Melee); });
+                    if (onCallCreateUnit != null)
+                        meleeButton.buttonComponent.onClick.AddListener(delegate { onCallCreateUnit(selectedObjects[0].GetComponent<ProductionBuilding>().spawnPoint.transform.position, UnitType.Melee); });
+
+                    buttons.Add(meleeButton.buttonComponent);
                 }
             }
 
             if (selectedObjects[0].GetComponent<Monster>() != null)
             {
-
+                
             }
 
             if (selectedObjects[0].GetComponent<Upgrade>() != null)
@@ -89,16 +96,12 @@ public class DynamicUI : MonoBehaviour {
         }
         else
         {
-            Debug.Log("No units were selected.");
             foreach (Button button in buttons)
             {
-                button.gameObject.SetActive(false);
+                Destroy(button.gameObject);
             }
-        }
-    }
 
-    void TestMethod()
-    {
-        Debug.Log("Button method called.");
+            buttons.Clear();
+        }
     }
 }

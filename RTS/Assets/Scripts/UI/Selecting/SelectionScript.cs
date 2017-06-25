@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using System.Reflection;
 
 public class SelectionScript : MonoBehaviour {
     //singleton stuff
@@ -28,58 +30,64 @@ public class SelectionScript : MonoBehaviour {
     MovementDelegate movementDelegate;
 
     //Updating UI
-    delegate void OnSelected(List<SelectableUnitComponent> selectedObjects);
-    OnSelected onSelected;
+    delegate void DynamicUIUpdate(List<SelectableUnitComponent> selectedObjects);
+    DynamicUIUpdate onCallUpdateUI;
 
     private void Start()
     {
         //this is for registering the dynamic UI script with this script
         DynamicUI dynamicUIscript = FindObjectOfType<DynamicUI>();
         if (dynamicUIscript != null)
-            onSelected += dynamicUIscript.UpdateUI;
+            onCallUpdateUI += dynamicUIscript.UpdateUI;
     }
+
+    public StandaloneInputModule module;
 
     void Update()
     {
-        // If we press the left mouse button, save mouse location and begin selection
-        if (Input.GetMouseButtonDown(0))
+        if (!UIClickBlocker.isHovered)
         {
-            isSelecting = true;
-            mousePosition1 = Input.mousePosition;
-            movementDelegate = null;
-            foreach (var selectableObject in FindObjectsOfType<SelectableUnitComponent>())
+            // If we press the left mouse button, save mouse location and begin selection
+            if (Input.GetMouseButtonDown(0))
             {
-                if (selectableObject.selectionCircle != null)
+                isSelecting = true;
+                mousePosition1 = Input.mousePosition;
+                movementDelegate = null;
+                foreach (var selectableObject in FindObjectsOfType<SelectableUnitComponent>())
                 {
-                    Destroy(selectableObject.selectionCircle.gameObject);
-                    selectableObject.selectionCircle = null;
+                    if (selectableObject.selectionCircle != null)
+                    {
+                        Destroy(selectableObject.selectionCircle.gameObject);
+                        selectableObject.selectionCircle = null;
+                    }
                 }
             }
-        }
-        // If we let go of the left mouse button, end selection
-        if (Input.GetMouseButtonUp(0))
-        {
-            selectedObjects = new List<SelectableUnitComponent>();
-            foreach(var objects in FindObjectsOfType<SelectableUnitComponent>())
+            // If we let go of the left mouse button, end selection
+            if (Input.GetMouseButtonUp(0))
             {
-                if (IsWithinSelectionBounds(objects.gameObject))
+                selectedObjects = new List<SelectableUnitComponent>();
+                foreach (var objects in FindObjectsOfType<SelectableUnitComponent>())
                 {
-                    selectedObjects.Add(objects);
-                    movementDelegate += objects.moveTo;
+                    if (IsWithinSelectionBounds(objects.gameObject))
+                    {
+                        selectedObjects.Add(objects);
+                        movementDelegate += objects.moveTo;
+                    }
                 }
+
+                foreach (var objects in selectedObjects)
+                {
+                    Debug.Log(objects.gameObject.name);
+                }
+
+                //this calls the Update UI method in the dynamicUI
+                if (onCallUpdateUI != null)
+                    onCallUpdateUI(selectedObjects);
+
+                isSelecting = false;
             }
-
-            foreach(var objects in selectedObjects)
-            {
-             //   Debug.Log(objects.gameObject.name);
-            }
-
-            //this calls the Update UI method in the dynamicUI
-            if (onSelected != null)
-                onSelected(selectedObjects);
-
-            isSelecting = false;
         }
+
         if (isSelecting)
         {
             foreach( var selectableObject in FindObjectsOfType<SelectableUnitComponent>())
@@ -129,8 +137,6 @@ public class SelectionScript : MonoBehaviour {
     public void MoveOut(Vector3 targetPosition)
     {
         Debug.Log("MoveOut");
-        movementDelegate(targetPosition);
-        
-        
+        movementDelegate(targetPosition);       
     }
 }
